@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[Jensen Huang Network] Removing Jensen</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=Noto+Serif+KR:wght@900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#1d2430;--sub:#5b6472;--mute:#9098a4;--blue:#24508f;--nv:#1f4f9a;--jen:#d9590f;--cut:#c2410c;--line:#b9c0ca;}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{font-family:"Noto Sans KR",system-ui,sans-serif;color:var(--ink);background:radial-gradient(ellipse at 45% 45%,#ffffff 0%,#f3f4f6 55%,#e4e7eb 100%)}
+#net{position:fixed;inset:0;width:100vw;height:100vh;display:block;cursor:default}
+/* edges */
+.edge{fill:none;stroke:#7f8996;stroke-width:.8;stroke-opacity:.42;vector-effect:non-scaling-stroke;transition:stroke-opacity .6s,stroke .4s,stroke-width .4s}
+.edge.nv{stroke-opacity:.30}
+.edge.jen{stroke:#c9773f;stroke-opacity:.55}
+.edge.dying{stroke:var(--jen)!important;stroke-opacity:1;stroke-width:2.2}
+.edge.gone{stroke-opacity:0!important;pointer-events:none}
+.edge.cutedge{stroke:var(--cut);stroke-dasharray:3 4;stroke-opacity:.6}
+.hovering .edge{stroke-opacity:.12}
+.hovering .edge.hl{stroke:var(--ink);stroke-opacity:.9;stroke-width:1.4}
+body.layers .edge{stroke-opacity:.6}
+/* particles */
+.pt{fill:var(--blue);opacity:.8}
+.pt.jen{fill:var(--jen)}
+/* nodes */
+.node{cursor:pointer;transition:opacity .7s}
+.node .halo{fill:var(--blue);opacity:0;transition:opacity .3s}
+.node .ring{fill:#fff;stroke:#3a5a8c;stroke-width:1.1;vector-effect:non-scaling-stroke;transition:stroke .4s,fill .4s}
+.node .core{fill:#3a5a8c;transition:fill .4s}
+.node.t-person .ring{stroke:#2d4f86}
+.node.t-government .ring{stroke:#6b7686}
+.node.t-government .core{fill:#6b7686}
+.node.t-event .ring{fill:#f3f4f6;stroke:#9aa3af;stroke-dasharray:2 2}
+.node.t-foundation .ring,.node.t-institution .ring{stroke:#7a8aa3}
+.node.nv .ring{fill:var(--nv);stroke:#fff;stroke-width:2.5}
+.node.nv .core{fill:#fff}
+.node.nv .halo{opacity:.12;fill:var(--nv)}
+.node.jh .ring{fill:#fff;stroke:var(--jen);stroke-width:3}
+.node.jh .core{fill:var(--jen)}
+.node.jh .halo{opacity:.16;fill:var(--jen)}
+.node:hover .halo,.node.me .halo{opacity:.22}
+.hovering .node{opacity:.35}
+.hovering .node.me,.hovering .node.nb{opacity:1}
+.node.dying{opacity:.0;transition:opacity .7s}
+.node.gone{opacity:.08!important}
+.node.gone .ring{stroke-dasharray:2 2}
+.node.cut .ring{stroke:var(--cut);stroke-width:2;stroke-dasharray:3 2;fill:#fff4ec}
+.node.cut .core{fill:var(--cut)}
+.node.cut .halo{opacity:.18;fill:var(--cut)}
+.node.far .ring{stroke:#e8913f;stroke-width:1.8}
+.node.far .halo{opacity:.18;fill:#f2a65a}
+.pulse{fill:none;stroke:var(--jen);stroke-width:2;vector-effect:non-scaling-stroke}
+/* labels */
+.lab{font-size:calc(11px * var(--s,1));fill:#4a5361;paint-order:stroke;stroke:#f5f6f8;stroke-width:calc(3.5px * var(--s,1));stroke-linejoin:round;opacity:0;pointer-events:none;transition:opacity .4s}
+.lab.on{opacity:.9}
+.lab.jh{fill:var(--jen);font-weight:900;font-size:calc(15px * var(--s,1))}
+.lab.nv{fill:var(--nv);font-weight:900;font-size:calc(15px * var(--s,1))}
+.lab.hv{opacity:1;fill:var(--ink);font-weight:700}
+.lab.cut{opacity:1;fill:var(--cut);font-weight:900;font-size:calc(13px * var(--s,1))}
+.lab.cut.many{font-size:calc(10px * var(--s,1));font-weight:700;opacity:.85}
+.lab.gone,.lab.dying{opacity:0!important}
+/* overlay */
+.title{position:fixed;left:28px;top:24px;max-width:460px;pointer-events:none}
+.tag{display:inline-block;font-size:12px;font-weight:700;letter-spacing:.04em;color:#fff;background:var(--ink);padding:3px 9px;border-radius:2px}
+.title h1{font-family:"Noto Serif KR",serif;font-weight:900;font-size:34px;line-height:1.2;margin:10px 0 6px;letter-spacing:-.02em}
+.title h1 em{font-style:normal;color:var(--jen)}
+.title p{margin:0;font-size:13.5px;color:var(--sub);line-height:1.55}
+.panel{position:fixed;right:20px;top:20px;bottom:20px;width:330px;background:rgba(255,255,255,.84);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(29,36,48,.1);border-radius:10px;padding:18px 18px 14px;overflow:auto;box-shadow:0 10px 40px rgba(29,36,48,.08)}
+.panel h2{font-size:12px;letter-spacing:.06em;color:var(--mute);margin:0 0 8px;font-weight:700}
+.scs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.sc{font:inherit;font-size:13px;font-weight:700;padding:9px 8px;border-radius:6px;border:1px solid #d5d9df;background:#fff;color:var(--ink);cursor:pointer;transition:all .2s}
+.sc:hover{border-color:var(--ink)}
+.sc.jh{color:var(--jen)} .sc.nv{color:var(--nv)}
+.sc.active{background:var(--ink);color:#fff;border-color:var(--ink)}
+.sc.jh.active{background:var(--jen);border-color:var(--jen)} .sc.nv.active{background:var(--nv);border-color:var(--nv)}
+#rm-name{font-size:17px;font-weight:900;margin:2px 0 4px}
+#rm-desc{font-size:12.5px;color:var(--sub);line-height:1.55;margin:0 0 12px}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:14px}
+.st{background:#f6f7f9;border-radius:6px;padding:8px 10px}
+.st .k{font-size:11px;color:var(--sub)}
+.st .v{font-size:20px;font-weight:900;letter-spacing:-.02em;color:var(--jen)}
+.st .v.big{color:var(--nv)}
+.lists h3{font-size:12.5px;margin:10px 0 6px;display:flex;align-items:center;gap:6px}
+.lists h3 i{display:inline-block;width:10px;height:10px;border-radius:50%;border:2px dashed var(--cut);background:#fff4ec}
+.lists h3 i.far{border:2px solid #e8913f;background:#fde8d4}
+.lists ul{list-style:none;margin:0;padding:0;font-size:12.5px;max-height:190px;overflow:auto}
+.lists li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid #eceef1}
+.lists li span{color:var(--mute);white-space:nowrap}
+.lists li.none{color:var(--mute);justify-content:flex-start}
+.foot{font-size:11px;color:var(--mute);line-height:1.55;margin-top:12px;border-top:1px solid #e3e6ea;padding-top:10px}
+.lt{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--sub);margin-top:12px;cursor:pointer}
+#legend-layers{display:none;flex-wrap:wrap;gap:4px 10px;font-size:11px;color:var(--sub);margin-top:6px}
+body.layers #legend-layers{display:flex}
+#legend-layers i{display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:4px;vertical-align:3px}
+.legend{position:fixed;left:28px;bottom:20px;display:flex;gap:14px;font-size:11.5px;color:var(--sub);pointer-events:none;flex-wrap:wrap;max-width:calc(100vw - 400px)}
+.legend span{display:flex;align-items:center;gap:5px}
+.legend b{display:inline-block;width:11px;height:11px;border-radius:50%;border:1.5px solid #3a5a8c;background:#fff}
+#tip{position:fixed;pointer-events:none;opacity:0;transition:opacity .15s;background:rgba(29,36,48,.94);color:#fff;border-radius:6px;padding:8px 10px;font-size:12px;line-height:1.5;max-width:240px;z-index:5}
+#tip b{display:block;font-size:13.5px}
+#tip span{display:block;color:#c8cdd5}
+#tip em{display:block;font-style:normal;color:#f6b585;margin-top:3px}
+
+/* 합치기 */
+.mbtn{width:100%;font:inherit;font-size:13px;font-weight:700;padding:9px 8px;border-radius:6px;border:1px dashed #d9590f;background:#fff;color:#d9590f;cursor:pointer;margin:0 0 8px}
+.mbtn.active{background:#d9590f;color:#fff;border-style:solid}
+#merge-box{background:#fdf4ed;border:1px solid #f4dcc9;border-radius:8px;padding:10px 12px;margin:0 0 12px;font-size:12px;color:var(--sub)}
+#merge-box h3{font-size:12.5px;color:var(--ink);margin:8px 0 3px}
+#merge-box p{margin:0;line-height:1.55}
+.mstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.mstats div{background:#fff;border-radius:6px;padding:6px 8px;font-weight:900;font-size:15px;color:var(--ink)}
+.mstats i{display:block;font-style:normal;font-size:10.5px;font-weight:500;color:var(--sub)}
+.mstats small{display:block;font-size:10px;font-weight:500;color:var(--mute)}
+.mstats b.j{color:#d9590f}
+body.merged .sc.jh,body.merged .sc[data-k="both"]{display:none}
+body.merged .node.nv .ring{stroke:#d9590f;stroke-width:4}
+.node.viaj .ring{stroke:#d9590f;stroke-width:2}
+.node.viaj .halo{opacity:.18;fill:#d9590f}
+/* 임원 */
+.edge.aug{stroke-dasharray:5 4;stroke:#7a5cc4;stroke-opacity:.8}
+#ex-list{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+.ex{font:inherit;font-size:12px;font-weight:700;padding:5px 9px;border-radius:999px;border:1px solid #c7ccd4;background:#fff;color:#1d2430;cursor:pointer}
+.ex:hover{border-color:#1f4f9a}
+.ex.active{background:#1f4f9a;color:#fff;border-color:#1f4f9a}
+.ex.miss{border-style:dashed;color:#8a8f98}
+#ex-card:not(:empty){background:#f3f6fb;border:1px solid #dbe3f0;border-radius:8px;padding:10px 12px;margin:0 0 8px;font-size:12.5px}
+#ex-card b{font-size:15px;display:block}
+#ex-card span{color:var(--sub);font-size:12px}
+#ex-card p{margin:6px 0 0;color:var(--sub);line-height:1.5}
+.exs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.exs div{background:#fff;border-radius:6px;padding:6px 8px;font-weight:900;font-size:15px;color:#1f4f9a}
+.exs i{display:block;font-style:normal;font-size:10.5px;font-weight:500;color:var(--sub)}
+.exs small{display:block;font-size:10.5px;font-weight:500;color:var(--mute)}
+.exrm{margin-top:8px;font:inherit;font-size:12px;font-weight:700;padding:6px 10px;border-radius:6px;border:1px solid #d9590f;background:#fff;color:#d9590f;cursor:pointer}
+.augl{display:flex;gap:6px;align-items:flex-start;font-size:12px;color:var(--sub);margin:0 0 8px;cursor:pointer}
+body.focusing .node{opacity:.15}
+body.focusing .node.fc,body.focusing .node.fnb{opacity:1}
+body.focusing .node.fc .halo{opacity:.3;fill:#1f4f9a}
+body.focusing .edge{stroke-opacity:.05}
+body.focusing .edge.fce{stroke:#1f4f9a;stroke-opacity:.9;stroke-width:1.8}
+body.focusing .lab{opacity:0}
+body.focusing .lab.fcl{opacity:1;fill:#1d2430;font-weight:700}
+body.focusing .pt{visibility:hidden}
+/* 한국 */
+.kbtn{width:100%;font:inherit;font-size:13px;font-weight:700;padding:9px 8px;border-radius:6px;border:1px dashed #1f6f5c;background:#fff;color:#1f6f5c;cursor:pointer;margin:0 0 8px}
+.kbtn.active{background:#1f6f5c;color:#fff;border-style:solid}
+#korea-box{background:#f2f8f5;border:1px solid #d3e8de;border-radius:8px;padding:10px 12px;margin:0 0 12px}
+#korea-box h3{margin:0 0 6px;font-size:13px;display:flex;justify-content:space-between}
+#korea-box h3 span{font-weight:400;font-size:11px;color:var(--mute)}
+.kt{width:100%;border-collapse:collapse;font-size:12px}
+.kt td{padding:3px 2px;border-bottom:1px solid #e3eee9;text-align:right;white-space:nowrap}
+.kt td:first-child{text-align:left;font-weight:700}
+.kt td small{font-weight:400;color:var(--mute);margin-left:5px}
+.kt tr.gh td{font-weight:900;color:#1f6f5c;border-bottom:1.5px solid #1f6f5c;padding-top:7px;text-align:left}
+.kt td.big{font-weight:900}
+#korea-box .nt{font-size:11px;color:var(--mute);line-height:1.5;margin:6px 0 0}
+.hull{fill:#1f6f5c;fill-opacity:.07;stroke:#1f6f5c;stroke-opacity:.45;stroke-width:1.2;stroke-dasharray:4 3;vector-effect:non-scaling-stroke}
+.hlab{font-size:calc(12px * var(--s,1));font-weight:900;fill:#1f6f5c;text-anchor:middle;paint-order:stroke;stroke:#f5f6f8;stroke-width:calc(3px * var(--s,1))}
+body.korea .node{opacity:.1}
+body.korea .node.kr,body.korea .node.cut{opacity:1}
+body.korea .node.gone{opacity:.08!important}
+body.korea .edge{stroke-opacity:.04}
+body.korea .edge.kre{stroke-opacity:.6;stroke-width:1.3}
+body.korea .edge.kre.jen{stroke:#d9590f;stroke-opacity:.8}
+body.korea .edge.kre.nv{stroke:#1f4f9a;stroke-opacity:.7}
+body.korea .lab{opacity:0}
+body.korea .lab.krl{opacity:1;fill:#1d2430;font-weight:700}
+body.korea .lab.krl.jh{fill:#d9590f}body.korea .lab.krl.nv{fill:#1f4f9a}
+body.korea .pt{visibility:hidden}
+/* 조직 단위 */
+.obtn{width:100%;font:inherit;font-size:13px;font-weight:700;padding:9px 8px;border-radius:6px;border:1px dashed #5b6472;background:#fff;color:#1d2430;cursor:pointer;margin:-6px 0 8px}
+.obtn.active{background:#1d2430;color:#fff;border-style:solid}
+.onote{font-size:11.5px;color:#5b6472;line-height:1.5;margin:0 0 12px;background:#f3f4f6;border-radius:6px;padding:8px 10px}
+/* 중국 경로 모드 */
+.cbtn{width:100%;font:inherit;font-size:13px;font-weight:700;padding:9px 8px;border-radius:6px;border:1px dashed #8b1e2d;background:#fff;color:#8b1e2d;cursor:pointer;margin:-6px 0 14px}
+.cbtn.active{background:#8b1e2d;color:#fff;border-style:solid}
+#china-box{background:#fbf6f4;border:1px solid #f0dcd5;border-radius:8px;padding:12px;margin:-4px 0 14px}
+#china-box h3{margin:0 0 8px;font-size:13px}
+#china-box .stats{margin-bottom:8px}
+#china-box .st{background:#fff}
+#china-box .st .v.c{color:var(--nv)}
+#china-box ul{list-style:none;margin:0 0 8px;padding:0;font-size:12.5px}
+#china-box li{display:flex;justify-content:space-between;gap:8px;padding:4px 0;border-bottom:1px solid #f0e4df}
+#china-box li span{color:var(--sub);white-space:nowrap}
+#china-box .rleg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;color:var(--sub);margin:6px 0}
+#china-box .rleg i{display:inline-block;width:18px;height:0;border-top:3px dashed;vertical-align:3px;margin-right:4px}
+#china-box .bt{display:flex;gap:6px;align-items:flex-start;font-size:12px;color:#8a5a00;cursor:pointer;margin-top:6px}
+#china-box .nt{font-size:11px;color:var(--mute);line-height:1.5;margin:6px 0 0}
+@keyframes flow{to{stroke-dashoffset:-24}}
+body.china .node{opacity:.12}
+body.china .node.cn,body.china .node.onroute,body.china .node.jh,body.china .node.nv,body.china .node.cut{opacity:1}
+body.china .node.gone{opacity:.08!important}
+body.china .edge{stroke-opacity:.05}
+body.china .edge.bedge{stroke:#c99600;stroke-opacity:.9;stroke-width:2;stroke-dasharray:3 3}
+body.china .edge.route{stroke-opacity:1;stroke-width:2.8;stroke-dasharray:8 4;animation:flow 1.1s linear infinite}
+body.china .edge.r-jh{stroke:var(--jen)}
+body.china .edge.r-samr{stroke:#8b1e2d}
+body.china .edge.r-us{stroke:#4a5a70}
+body.china .edge.route.bedge{stroke:#c99600}
+.edge.off{stroke-opacity:0!important}
+body.china .lab{opacity:0}
+body.china .lab.cnl,body.china .lab.rl,body.china .lab.jh,body.china .lab.nv,body.china .lab.cut{opacity:1}
+body.china .lab.rl{fill:var(--ink);font-weight:700}
+body.china .pt{visibility:hidden}
+.blab{font-size:calc(10.5px * var(--s,1));font-weight:700;fill:#8a5a00;paint-order:stroke;stroke:#f5f6f8;stroke-width:calc(3px * var(--s,1));text-anchor:middle;pointer-events:none;display:none}
+body.china:not(.boff) .blab{display:block}
+
+/* 확대·축소 */
+#net{touch-action:none;cursor:grab}
+#net.grabbing{cursor:grabbing}
+.zoom{position:fixed;right:376px;bottom:20px;display:flex;flex-direction:column;align-items:center;gap:4px;background:rgba(255,255,255,.9);border:1px solid rgba(29,36,48,.12);border-radius:8px;padding:4px;box-shadow:0 4px 16px rgba(29,36,48,.08);z-index:4}
+.zoom button{width:34px;height:34px;border:0;background:transparent;border-radius:6px;font:inherit;font-size:18px;font-weight:700;color:var(--ink);cursor:pointer;line-height:1}
+.zoom button:hover{background:#eef0f3}
+.zoom button.fit{font-size:11px;font-weight:700}
+.zoom #zoom-val{font-size:10.5px;color:var(--mute);padding:2px 0}
+body.zoomed .lab{opacity:.9}
+body.zoomed.china .lab{opacity:0}
+body.zoomed.china .lab.cnl,body.zoomed.china .lab.rl,body.zoomed.china .lab.jh,body.zoomed.china .lab.nv,body.zoomed.china .lab.cut{opacity:1}
+body.focusing.zoomed .lab,body.korea.zoomed .lab{opacity:.12}
+body.focusing.zoomed .lab.fcl{opacity:1}
+body.korea.zoomed .lab.krl{opacity:1}
+@media (max-width:860px){
+  .zoom{right:10px;bottom:auto;top:84px}
+  .title{left:16px;top:14px;right:16px}
+  .title h1{font-size:24px}
+  .title p{display:none}
+  .panel{left:10px;right:10px;top:auto;bottom:10px;width:auto;max-height:42vh;padding:12px}
+  .legend{display:none}
+}
+
+/* for_publish: 수치 숨김 */
+.stats,#rm-desc,.lists,#china-box,#korea-box,#merge-box,#ex-card,#org-note,#aug-note,.zoom #zoom-val,#tip span:not(:first-of-type){display:none!important}
+#rm-name{margin-bottom:12px}
+</style>
+</head>
+<body>
+<svg id="net" role="img" aria-label="NVIDIA network, 153 nodes and 255 links. Click a node to remove it"></svg>
+
+<div class="title">
+  <span class="tag">[Jensen Huang Network]</span>
+  <p>NVIDIA’s relationship network just before Jensen Huang stepped down (Nov 10, 2026). Click a node to remove it and its links; the rest of the network reorganizes. Scroll or pinch to zoom, drag to pan.</p>
+</div>
+
+<aside class="panel">
+  <h2>Scenarios</h2>
+  <div class="scs">
+    <button class="sc jh" data-k="jh">Remove Jensen Huang</button>
+    <button class="sc nv" data-k="nv">Remove NVIDIA</button>
+    <button class="sc" data-k="both">Remove both</button>
+    <button class="sc" data-k="base">Reset</button>
+  </div>
+  <button class="mbtn" id="merge-toggle">View Jensen = NVIDIA (merge into one)</button>
+  <div id="merge-box" hidden></div>
+  <button class="obtn" id="org-toggle">View by organization (head = company)</button>
+  <p class="onote" id="org-note" hidden>26 company heads are merged into their companies (e.g., Lee Jae-yong → Samsung Electronics), and attendees of events with three or more people are linked directly. Jensen Huang and NVIDIA are kept separate. 114 nodes, 224 links.</p>
+  <h2 style="margin-top:4px">NVIDIA executives</h2>
+  <div id="ex-list"></div>
+  <div id="ex-card"></div>
+  <label class="augl"><input type="checkbox" id="aug-toggle"> Supplementary layer: add ties for Jeff Fisher, Ian Buck and others (from Part 4 reporting)</label>
+  <p class="onote" id="aug-note" hidden>Seven ties are added as grade B (media reports): Fisher–NVIDIA, Chey Tae-won, Kwak Noh-jung, Kim Ju-seon and Jun Young-hyun; Kim Ju-seon–SK hynix; Ian Buck–NVIDIA. All metrics are recalculated. For reference until original sources are verified.</p>
+  <button class="kbtn" id="korea-toggle">View Korean companies & leaders</button>
+  <div id="korea-box" hidden>
+    <h3>Reach loss by group <span>Jensen removed · NVIDIA removed</span></h3>
+    <table class="kt"><tbody id="korea-table"></tbody></table>
+    <p class="nt">Companies and their leaders are grouped. Figures show the change when only that one node is removed from the full network. Bold orange marks cases where removing Jensen hurts more.</p>
+  </div>
+  <button class="cbtn" id="china-toggle">View paths to China</button>
+  <div id="china-box" hidden>
+    <h3>NVIDIA → Chinese leadership</h3>
+    <ul id="cn-paths"></ul>
+    <div class="rleg"><span><i style="color:#d9590f"></i>Via Jensen</span><span><i style="color:#8b1e2d"></i>Regulatory route</span><span><i style="color:#4a5a70"></i>Negotiation route</span></div>
+    <div class="stats">
+      <div class="st"><div class="k">Paths to leadership via Jensen</div><div class="v" id="cn-via-jh">—</div></div>
+      <div class="st"><div class="k">Via NVIDIA</div><div class="v c" id="cn-via-nv">—</div></div>
+    </div>
+    <label class="bt"><input type="checkbox" id="bedge-toggle"> Exclude SAMR→State Council link (grade B)</label>
+    <p class="nt" id="cn-note">Leadership = He Lifeng, Wang Wentao, the State Council and the Commerce Ministry. The pass-through share is the average proportion of shortest paths from outside nodes (excluding events and the two hubs) to these four that run through a given node, calculated live. Base-network reach loss: −34.1% without Jensen, −26.6% without NVIDIA.</p>
+  </div>
+  <div id="rm-name"></div>
+  <p id="rm-desc"></p>
+  <div class="stats">
+    <div class="st"><div class="k">Efficiency loss</div><div class="v" id="st-eff">—</div></div>
+    <div class="st"><div class="k">Links removed</div><div class="v" id="st-edge">—</div></div>
+    <div class="st"><div class="k">Nodes cut off</div><div class="v" id="st-cut">—</div></div>
+    <div class="st"><div class="k">Nodes pushed farther</div><div class="v" id="st-far">—</div></div>
+  </div>
+  <div class="lists">
+    <h3><i></i>Nodes cut off from the network</h3>
+    <ul id="cut-list"></ul>
+    <h3><i class="far"></i><span id="far-title">Nodes pushed farther</span></h3>
+    <ul id="far-list"></ul>
+  </div>
+  <label class="lt"><input type="checkbox" id="layer-toggle"> Color links by relationship type</label>
+  <div id="legend-layers"></div>
+  <div class="foot">Sources: SEC filings, FEC records, Form 990-PF, government announcements, company releases, major media · As of Nov 10, 2026<br>Yonhap Infomax</div>
+</aside>
+
+<div class="legend">
+  <span><b style="background:#1f4f9a;border-color:#1f4f9a"></b>NVIDIA (company)</span>
+  <span><b style="border-color:#d9590f;border-width:2.5px"></b>Jensen Huang</span>
+  <span><b></b>Company / person</span>
+  <span><b style="border-style:dashed;border-color:#9aa3af"></b>Event</span>
+  <span><b style="border-style:dashed;border-color:#c2410c;background:#fff4ec"></b>Cut off</span>
+  <span><b style="border-color:#e8913f;background:#fde8d4"></b>Pushed farther</span>
+</div>
+<div class="zoom" aria-label="Zoom">
+  <button id="zoom-in" title="Zoom in">+</button>
+  <span id="zoom-val">100%</span>
+  <button id="zoom-out" title="Zoom out">−</button>
+  <button id="zoom-fit" class="fit" title="Fit all">Fit</button>
+</div>
+<div id="tip"></div>
+<script>
+const DATA={"nodes":[{"id":"C_ASE","n":"ASE","t":"company","c":"TW","d":"Packaging & test"},{"id":"C_SEM","n":"Samsung Electro-Mechanics","t":"company","c":"KR","d":"Package substrates"},{"id":"P_HT","n":"Hock Tan","t":"person","c":"US","d":"Broadcom CEO"},{"id":"P_MH","n":"Madison Huang","t":"person","c":"US","d":"Daughter; NVIDIA senior director, physical AI product marketing"},{"id":"P_TC","n":"Tino Cuéllar","t":"person","c":"US","d":"Anthropic chief global affairs officer"},{"id":"C_QUA","n":"Quanta","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"G_SAMR","n":"China SAMR","t":"government","c":"CN","d":"State Administration for Market Regulation (antitrust)"},{"id":"U_STAN","n":"Stanford University","t":"institution","c":"US","d":""},{"id":"C_COH","n":"Coherent","t":"company","c":"US","d":"Optical communications"},{"id":"EV_SUMMIT","n":"SF AI summit","t":"event","c":"","d":"Event"},{"id":"F_HF","n":"Jen-Hsun & Lori Huang Foundation","t":"foundation","c":"US","d":"Assets about $9.2bn (end-2024)"},{"id":"P_JYH","n":"Jun Young-hyun","t":"person","c":"KR","d":"Samsung Electronics vice chairman, DS division head"},{"id":"C_MGX","n":"MGX","t":"company","c":"AE","d":"AI investment"},{"id":"EV_MSPART","n":"MS–NVIDIA–Anthropic partnership announcement","t":"event","c":"","d":"Event"},{"id":"C_FN","n":"Fabrinet","t":"company","c":"TH","d":"Optical component contract manufacturing"},{"id":"C_MSFT","n":"Microsoft","t":"company","c":"US","d":"Cloud"},{"id":"P_KNJ","n":"Kwak Noh-jung","t":"person","c":"KR","d":"SK hynix CEO"},{"id":"C_BYTE","n":"ByteDance","t":"company","c":"CN","d":"Internet & AI"},{"id":"EV_LONDON","n":"US-China London trade talks","t":"event","c":"","d":"Event"},{"id":"P_CM","n":"Chris Malachowsky","t":"person","c":"US","d":"NVIDIA co-founder"},{"id":"P_HLF","n":"He Lifeng","t":"person","c":"CN","d":"Chinese vice premier"},{"id":"P_LBT","n":"Lip-Bu Tan","t":"person","c":"US","d":"Intel CEO; former Cadence CEO"},{"id":"P_MZ","n":"Mark Zuckerberg","t":"person","c":"US","d":"Meta CEO"},{"id":"P_LE","n":"Larry Ellison","t":"person","c":"US","d":"Oracle chairman & CTO"},{"id":"P_LS","n":"Lisa Su","t":"person","c":"US","d":"AMD CEO; distant relative of Jensen Huang"},{"id":"P_SCN","n":"Stephen C. Neal","t":"person","c":"US","d":"NVIDIA director; oversight committee member"},{"id":"O_BROOK","n":"Brookings Institution","t":"institution","c":"US","d":"Think tank"},{"id":"P_SP","n":"Sundar Pichai","t":"person","c":"US","d":"Alphabet CEO"},{"id":"EV_HONGDAE","n":"Hongdae pork-belly dinner","t":"event","c":"","d":"Event"},{"id":"EV_BEIJING","n":"Trump state visit to China","t":"event","c":"","d":"Event"},{"id":"P_CCW","n":"C.C. Wei","t":"person","c":"TW","d":"TSMC chairman & CEO"},{"id":"C_GEN","n":"Generate Biomedicines","t":"company","c":"US","d":"New in 2026"},{"id":"P_KTJ","n":"Kim Taek-jin","t":"person","c":"KR","d":"NCSOFT co-CEO"},{"id":"C_GOOG","n":"Alphabet (Google)","t":"company","c":"US","d":"Cloud; in-house TPU"},{"id":"P_WWT","n":"Wang Wentao","t":"person","c":"CN","d":"Chinese commerce minister"},{"id":"C_SK","n":"SK Group","t":"company","c":"KR","d":"Holding company"},{"id":"G_MSIT","n":"Korea Ministry of Science and ICT","t":"government","c":"KR","d":""},{"id":"C_NEB","n":"Nebius","t":"company","c":"NL","d":"Neocloud"},{"id":"P_CK","n":"Colette Kress","t":"person","c":"US","d":"NVIDIA CFO & interim CEO"},{"id":"C_NAV","n":"NAVER","t":"company","c":"KR","d":"Cloud & AI factory"},{"id":"P_DSQ","n":"Debora Shoquist","t":"person","c":"US","d":"NVIDIA EVP, operations"},{"id":"C_NSCALE","n":"Nscale","t":"company","c":"GB","d":"Neocloud (private)"},{"id":"EV_CHICKEN","n":"Kkanbu Chicken dinner (Samseong-dong)","t":"event","c":"","d":"Event"},{"id":"P_TR","n":"Donald Trump","t":"person","c":"US","d":"U.S. president"},{"id":"G_STATE","n":"U.S. State Department","t":"government","c":"US","d":"Diplomacy & export-control talks"},{"id":"G_OSTP","n":"White House OSTP","t":"government","c":"US","d":"Science & technology policy"},{"id":"EV_COMPUTEX","n":"Computex SK hynix booth meeting","t":"event","c":"","d":"Event"},{"id":"EV_KKANBU2","n":"Kkanbu Chicken dinner (Chey Tae-won, Jun 7, 2026)","t":"event","c":"","d":"Event"},{"id":"F_T12","n":"Huang 2012 Irrevocable Trust","t":"foundation","c":"US","d":"Co-trustees: the couple"},{"id":"C_TENC","n":"Tencent","t":"company","c":"CN","d":"Internet & cloud"},{"id":"P_MI","n":"Michael Intrator","t":"person","c":"US","d":"CoreWeave chairman & CEO"},{"id":"C_TSMC","n":"TSMC","t":"company","c":"TW","d":"Foundry & CoWoS"},{"id":"P_LJY","n":"Lee Jae-yong","t":"person","c":"KR","d":"Samsung Electronics chairman"},{"id":"G_BIS","n":"U.S. Commerce BIS","t":"government","c":"US","d":"Bureau of Industry and Security (export controls)"},{"id":"G_TNM","n":"Trust for the National Mall","t":"foundation","c":"US","d":"Nonprofit raising funds for White House ballroom"},{"id":"C_SKH","n":"SK hynix","t":"company","c":"KR","d":"HBM"},{"id":"C_GDM","n":"Google DeepMind","t":"company","c":"GB","d":"AI research (Alphabet)"},{"id":"P_SNJ","n":"Suzanne Nora Johnson","t":"person","c":"US","d":"NVIDIA director; chair, national security & export-control oversight committee"},{"id":"F_TRT","n":"Huang Irrevocable Remainder Trust","t":"foundation","c":"US","d":"Set up Feb 19, 2016; co-trustees: the couple"},{"id":"EV_STARGATE","n":"White House Stargate announcement","t":"event","c":"","d":"Event"},{"id":"P_SB","n":"Scott Bessent","t":"person","c":"US","d":"U.S. Treasury secretary"},{"id":"PJ_STAR","n":"Stargate","t":"project","c":"US","d":"AI infrastructure joint venture"},{"id":"C_BRK","n":"Brookfield","t":"company","c":"CA","d":"Infrastructure investment"},{"id":"P_JH","n":"Jensen Huang","t":"person","c":"US/TW","d":"NVIDIA co-founder & former CEO (resigned Nov 12, 2026)"},{"id":"C_SKT","n":"SK Telecom","t":"company","c":"KR","d":"AI cloud & data centers"},{"id":"P_LHJ","n":"Lee Hae-jin","t":"person","c":"KR","d":"NAVER founder & board chairman"},{"id":"G_USTR","n":"USTR","t":"government","c":"US","d":"Trade"},{"id":"P_MR","n":"Marco Rubio","t":"person","c":"US","d":"U.S. secretary of state & national security adviser"},{"id":"C_SBG","n":"SoftBank Group","t":"company","c":"JP","d":"Investment holding"},{"id":"C_OAI","n":"OpenAI","t":"company","c":"US","d":"AI models"},{"id":"P_MS","n":"Masayoshi Son","t":"person","c":"JP","d":"SoftBank Group chairman & CEO"},{"id":"P_CTW","n":"Chey Tae-won","t":"person","c":"KR","d":"SK Group chairman"},{"id":"P_BN","n":"Barbara Novick","t":"person","c":"US","d":"Intel director; BlackRock co-founder"},{"id":"C_SEC","n":"Samsung Electronics","t":"company","c":"KR","d":"Memory & foundry"},{"id":"P_CSY","n":"Choi Soo-yeon","t":"person","c":"KR","d":"NAVER CEO"},{"id":"EV_NOBU","n":"Nobu Palo Alto dinner","t":"event","c":"","d":"Event"},{"id":"G_CNSC","n":"PRC State Council","t":"government","c":"CN","d":""},{"id":"C_LG","n":"LG Group","t":"company","c":"KR","d":"AI factory & robotics"},{"id":"C_SBE","n":"SB Energy","t":"company","c":"US","d":"Energy & data-center sites"},{"id":"EV_APEC","n":"Gyeongju APEC meeting with President Lee","t":"event","c":"","d":"Event"},{"id":"C_NV","n":"NVIDIA","t":"company","c":"US","d":"GPU & AI computing"},{"id":"C_FOX","n":"Foxconn","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"EV_NVHQ","n":"NAVER executives visit NVIDIA HQ","t":"event","c":"","d":"Event"},{"id":"P_JK","n":"Jeffrey Kessler","t":"person","c":"US","d":"Commerce under secretary for industry & security (BIS)"},{"id":"P_DH","n":"Demis Hassabis","t":"person","c":"GB","d":"Google DeepMind CEO; Alphabet chief scientist"},{"id":"G_SGPF","n":"Singapore Police / MHA","t":"government","c":"SG","d":""},{"id":"U_SNU","n":"Seoul National University","t":"institution","c":"KR","d":""},{"id":"C_LAMBDA","n":"Lambda","t":"company","c":"US","d":"Neocloud (private)"},{"id":"F_TARG","n":"TARG LLCs (4)","t":"foundation","c":"US","d":"Living trust is sole member"},{"id":"C_SPX","n":"SpaceX (xAI)","t":"company","c":"US","d":"Absorbed xAI"},{"id":"C_MAG","n":"Magnetar Capital","t":"company","c":"US","d":"Hedge fund (CoreWeave top shareholder)"},{"id":"G_DOC","n":"U.S. Commerce Department","t":"government","c":"US","d":"Export controls"},{"id":"P_SA","n":"Sam Altman","t":"person","c":"US","d":"OpenAI CEO"},{"id":"G_CAC","n":"Cyberspace Administration of China","t":"government","c":"CN","d":"Internet & data regulation"},{"id":"P_DA","n":"Dario Amodei","t":"person","c":"US","d":"Anthropic CEO"},{"id":"C_ALI","n":"Alibaba","t":"company","c":"CN","d":"E-commerce & cloud"},{"id":"C_REB","n":"Rebellions","t":"company","c":"KR","d":"NPU"},{"id":"P_RS","n":"Robert Swan","t":"person","c":"US","d":"Micron director; former Intel CEO"},{"id":"P_SM","n":"Sanjay Mehrotra","t":"person","c":"US","d":"Micron chairman & CEO"},{"id":"C_DOO","n":"Doosan Group","t":"company","c":"KR","d":"Robotics & energy"},{"id":"C_MEGA","n":"Megaspeed","t":"company","c":"SG","d":"GPU cloud"},{"id":"C_META","n":"Meta","t":"company","c":"US","d":"Social & AI models"},{"id":"P_ABS","n":"A. Brooke Seawell","t":"person","c":"US","d":"NVIDIA director; audit committee chair"},{"id":"P_MC","n":"Morris Chang","t":"person","c":"TW","d":"TSMC founder"},{"id":"G_NVPAC","n":"NVIDIA Employees PAC","t":"foundation","c":"US","d":"FEC-registered Aug 27, 2026"},{"id":"P_PJW","n":"Park Jeong-won","t":"person","c":"KR","d":"Doosan Group chairman"},{"id":"C_HF","n":"Hugging Face","t":"company","c":"US","d":"Open-source AI model hub"},{"id":"G_PCAST","n":"PCAST","t":"institution","c":"US","d":"Presidential advisory council"},{"id":"P_JOD","n":"John O. Dabiri","t":"person","c":"US","d":"NVIDIA director; oversight committee member"},{"id":"P_MST","n":"Mark Stevens","t":"person","c":"US","d":"NVIDIA director"},{"id":"C_HMG","n":"Hyundai Motor Group","t":"company","c":"KR","d":"Autonomous driving & robotics"},{"id":"P_KK","n":"Koray Kavukcuoglu","t":"person","c":"US","d":"Google DeepMind SVP; Google chief AI architect"},{"id":"P_KKM","n":"Koo Kwang-mo","t":"person","c":"KR","d":"LG Group chairman"},{"id":"P_HJ","n":"Harvey C. Jones","t":"person","c":"US","d":"NVIDIA first board chairman"},{"id":"P_CES","n":"Chung Eui-sun","t":"person","c":"KR","d":"Hyundai Motor Group chairman"},{"id":"P_JG","n":"Jamieson Greer","t":"person","c":"US","d":"U.S. trade representative"},{"id":"C_NOK","n":"Nokia","t":"company","c":"FI","d":"Telecom equipment"},{"id":"C_AMZN","n":"Amazon (AWS)","t":"company","c":"US","d":"Cloud; in-house Trainium"},{"id":"P_HL","n":"Howard Lutnick","t":"person","c":"US","d":"U.S. commerce secretary"},{"id":"P_AJ","n":"Andy Jassy","t":"person","c":"US","d":"Amazon CEO"},{"id":"C_AVGO","n":"Broadcom","t":"company","c":"US","d":"Custom AI chips & networking"},{"id":"U_OSU","n":"Oregon State University","t":"institution","c":"US","d":""},{"id":"P_DS","n":"David Sacks","t":"person","c":"US","d":"PCAST co-chair (former AI & crypto czar)"},{"id":"C_CRUSOE","n":"Crusoe","t":"company","c":"US","d":"Neocloud (private)"},{"id":"C_WIS","n":"Wistron","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"C_AMD","n":"AMD","t":"company","c":"US","d":"GPU & CPU"},{"id":"EV_GENEVA","n":"US-China Geneva trade talks","t":"event","c":"","d":"Event"},{"id":"G_WH","n":"White House","t":"government","c":"US","d":""},{"id":"C_ORCL","n":"Oracle","t":"company","c":"US","d":"Cloud (OCI); Stargate"},{"id":"F_LT","n":"Huang Living Trust","t":"foundation","c":"US","d":"Holds about 530m NVIDIA shares (est.)"},{"id":"G_TRE","n":"U.S. Treasury Department","t":"government","c":"US","d":"Economic security & sanctions"},{"id":"G_MOFCOM","n":"PRC Commerce Ministry","t":"government","c":"CN","d":""},{"id":"P_GH","n":"Glenn Hutchins","t":"person","c":"US","d":"CoreWeave lead independent director; Silver Lake co-founder"},{"id":"C_NC","n":"NCSOFT","t":"company","c":"KR","d":"Games"},{"id":"P_CL","n":"Chris Lehane","t":"person","c":"US","d":"OpenAI chief global affairs officer"},{"id":"C_ARM","n":"Arm","t":"company","c":"UK","d":"Held Sep 2025; sold Q4 2025"},{"id":"C_HUMAIN","n":"Humain","t":"company","c":"SA","d":"Saudi PIF-owned AI company"},{"id":"P_JGZ","n":"James Goetz","t":"person","c":"US","d":"Intel director; Sequoia partner"},{"id":"P_EM","n":"Elon Musk","t":"person","c":"US","d":"CEO of xAI, SpaceX, Tesla"},{"id":"C_BLK","n":"BlackRock","t":"company","c":"US","d":"Asset manager (7.43% of NVIDIA)"},{"id":"P_LJM","n":"Lee Jae-myung","t":"person","c":"KR","d":"South Korean president"},{"id":"P_LH","n":"Lori Huang","t":"person","c":"US","d":"Spouse; Huang Foundation president; living-trust co-trustee"},{"id":"P_SN","n":"Satya Nadella","t":"person","c":"US","d":"Microsoft CEO"},{"id":"P_MK","n":"Michael Kratsios","t":"person","c":"US","d":"White House OSTP director; PCAST co-chair"},{"id":"C_CW","n":"CoreWeave","t":"company","c":"US","d":"Neocloud"},{"id":"P_AH","n":"Alice Huang (Huang Le)","t":"person","c":"CN","d":"Former Megaspeed executive; not a family member"},{"id":"P_TML","n":"Mark Liu","t":"person","c":"TW","d":"Micron director; former TSMC executive chairman"},{"id":"C_SNPS","n":"Synopsys","t":"company","c":"US","d":"EDA"},{"id":"P_SH","n":"Spencer Huang","t":"person","c":"US","d":"Son; NVIDIA director, robotics software product management"},{"id":"C_SEQ","n":"Sequoia Capital","t":"company","c":"US","d":"Venture capital"},{"id":"C_MU","n":"Micron","t":"company","c":"US","d":"HBM"},{"id":"C_ANT","n":"Anthropic","t":"company","c":"US","d":"AI models"},{"id":"C_INTC","n":"Intel","t":"company","c":"US","d":"CPU & foundry"}],"edges":[{"s":"C_NV","t":"C_TSMC","l":["supply"],"g":"B"},{"s":"C_FOX","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_QUA","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_WIS","l":["supply"],"g":"B"},{"s":"C_ASE","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_MU","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SKH","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SEC","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SK","l":["supply"],"g":"B"},{"s":"C_HMG","t":"C_NV","l":["supply","investment"],"g":"B"},{"s":"C_NAV","t":"C_NV","l":["supply","investment"],"g":"B"},{"s":"C_NV","t":"G_MSIT","l":["supply","policy"],"g":"B"},{"s":"C_NV","t":"C_SKT","l":["supply"],"g":"B"},{"s":"C_REB","t":"C_SKT","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_REB","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_OAI","l":["customer","investment"],"g":"B"},{"s":"C_ANT","t":"C_NV","l":["customer","investment"],"g":"B"},{"s":"C_ANT","t":"C_MSFT","l":["customer","investment"],"g":"B"},{"s":"C_CW","t":"C_NV","l":["customer","investment"],"g":"A"},{"s":"C_NEB","t":"C_NV","l":["customer","investment"],"g":"A"},{"s":"C_NV","t":"C_SPX","l":["customer","investment"],"g":"A"},{"s":"C_CW","t":"C_MAG","l":["investment"],"g":"B"},{"s":"C_INTC","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_NV","t":"C_SNPS","l":["investment"],"g":"A"},{"s":"C_NOK","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_COH","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_BRK","t":"C_NAV","l":["investment"],"g":"B"},{"s":"P_JH","t":"P_TR","l":["policy"],"g":"B"},{"s":"C_NV","t":"G_DOC","l":["policy"],"g":"B"},{"s":"G_WH","t":"P_TR","l":["policy"],"g":"B"},{"s":"G_DOC","t":"G_WH","l":["policy"],"g":"A"},{"s":"C_NV","t":"G_TNM","l":["policy"],"g":"B"},{"s":"P_HLF","t":"P_JH","l":["policy"],"g":"B"},{"s":"P_JH","t":"P_WWT","l":["policy"],"g":"B"},{"s":"G_CNSC","t":"P_HLF","l":["policy"],"g":"B"},{"s":"G_MOFCOM","t":"P_WWT","l":["policy"],"g":"B"},{"s":"C_HMG","t":"G_MSIT","l":["policy"],"g":"B"},{"s":"C_MEGA","t":"G_SGPF","l":["policy"],"g":"B"},{"s":"C_NV","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"P_HJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_CM","l":["people"],"g":"A"},{"s":"C_NV","t":"P_MH","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SH","l":["people"],"g":"A"},{"s":"P_JH","t":"P_LH","l":["people"],"g":"A"},{"s":"P_JH","t":"P_MH","l":["people"],"g":"B"},{"s":"P_JH","t":"P_SH","l":["people"],"g":"B"},{"s":"P_JH","t":"P_LS","l":["people"],"g":"B"},{"s":"C_AMD","t":"P_LS","l":["people"],"g":"A"},{"s":"F_HF","t":"P_LH","l":["people"],"g":"A"},{"s":"F_HF","t":"P_JH","l":["people"],"g":"A"},{"s":"F_LT","t":"P_LH","l":["people"],"g":"A"},{"s":"F_LT","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"F_LT","l":["people"],"g":"A"},{"s":"C_NV","t":"F_HF","l":["people"],"g":"A"},{"s":"P_AH","t":"P_JH","l":["people"],"g":"B"},{"s":"C_OAI","t":"P_SA","l":["people"],"g":"B"},{"s":"C_SEC","t":"P_LJY","l":["people"],"g":"B"},{"s":"C_SEC","t":"P_JYH","l":["people"],"g":"B"},{"s":"C_SK","t":"P_CTW","l":["people"],"g":"B"},{"s":"C_SK","t":"C_SKH","l":["people"],"g":"B"},{"s":"C_SK","t":"C_SKT","l":["people"],"g":"B"},{"s":"C_HMG","t":"P_CES","l":["people"],"g":"B"},{"s":"C_LG","t":"P_KKM","l":["people"],"g":"A"},{"s":"C_DOO","t":"P_PJW","l":["people"],"g":"A"},{"s":"C_NAV","t":"P_LHJ","l":["people"],"g":"A"},{"s":"C_NAV","t":"P_CSY","l":["people"],"g":"B"},{"s":"C_NC","t":"P_KTJ","l":["people"],"g":"A"},{"s":"C_SEC","t":"C_SEM","l":["people"],"g":"B"},{"s":"P_JH","t":"U_SNU","l":["meeting"],"g":"B"},{"s":"F_T12","t":"P_LH","l":["people"],"g":"A"},{"s":"F_T12","t":"P_JH","l":["people"],"g":"A"},{"s":"F_TRT","t":"P_LH","l":["people"],"g":"A"},{"s":"F_TRT","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"F_T12","l":["people"],"g":"A"},{"s":"C_NV","t":"F_TRT","l":["people"],"g":"A"},{"s":"F_LT","t":"F_TARG","l":["people"],"g":"A"},{"s":"C_NV","t":"F_TARG","l":["people"],"g":"A"},{"s":"C_NV","t":"G_NVPAC","l":["policy"],"g":"A"},{"s":"G_NVPAC","t":"P_MH","l":["policy"],"g":"A"},{"s":"C_GEN","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_LG","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_DOO","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NC","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_MSFT","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_META","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_AMZN","t":"C_NV","l":["customer","supply"],"g":"B"},{"s":"C_NV","t":"C_ORCL","l":["customer"],"g":"B"},{"s":"C_HUMAIN","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_HUMAIN","t":"C_SPX","l":["customer"],"g":"B"},{"s":"C_OAI","t":"C_ORCL","l":["customer"],"g":"B"},{"s":"C_MSFT","t":"C_OAI","l":["customer","investment"],"g":"B"},{"s":"C_AMZN","t":"C_OAI","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_OAI","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_META","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_MSFT","l":["customer"],"g":"B"},{"s":"C_ANT","t":"C_GOOG","l":["customer"],"g":"B"},{"s":"C_MSFT","t":"P_SN","l":["people"],"g":"A"},{"s":"C_META","t":"P_MZ","l":["people"],"g":"B"},{"s":"C_AMZN","t":"P_AJ","l":["people"],"g":"B"},{"s":"C_GOOG","t":"P_SP","l":["people"],"g":"B"},{"s":"C_ORCL","t":"P_LE","l":["people"],"g":"B"},{"s":"C_SPX","t":"P_EM","l":["people"],"g":"B"},{"s":"P_JH","t":"P_MZ","l":["meeting"],"g":"B"},{"s":"P_EM","t":"P_JH","l":["meeting"],"g":"B"},{"s":"P_JH","t":"U_OSU","l":["academia"],"g":"A"},{"s":"P_LH","t":"U_OSU","l":["academia"],"g":"A"},{"s":"P_JH","t":"U_STAN","l":["academia"],"g":"A"},{"s":"F_HF","t":"U_OSU","l":["philanthropy"],"g":"A"},{"s":"F_HF","t":"U_STAN","l":["philanthropy"],"g":"B"},{"s":"C_CW","t":"F_HF","l":["philanthropy"],"g":"A"},{"s":"C_ANT","t":"P_DA","l":["people"],"g":"B"},{"s":"G_DOC","t":"P_HL","l":["policy"],"g":"A"},{"s":"G_STATE","t":"P_MR","l":["policy"],"g":"B"},{"s":"G_WH","t":"P_MR","l":["policy"],"g":"B"},{"s":"P_MR","t":"P_TR","l":["policy"],"g":"B"},{"s":"P_HL","t":"P_MR","l":["policy"],"g":"B"},{"s":"EV_APEC","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_APEC","t":"P_LJM","l":["meeting"],"g":"B"},{"s":"EV_APEC","t":"P_CTW","l":["meeting"],"g":"B"},{"s":"EV_APEC","t":"P_LHJ","l":["meeting"],"g":"B"},{"s":"EV_APEC","t":"P_LJY","l":["meeting"],"g":"B"},{"s":"EV_APEC","t":"P_CES","l":["meeting"],"g":"B"},{"s":"EV_CHICKEN","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_CHICKEN","t":"P_LJY","l":["meeting"],"g":"B"},{"s":"EV_CHICKEN","t":"P_CES","l":["meeting"],"g":"B"},{"s":"EV_HONGDAE","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_HONGDAE","t":"P_KKM","l":["meeting"],"g":"B"},{"s":"EV_HONGDAE","t":"P_CTW","l":["meeting"],"g":"B"},{"s":"EV_HONGDAE","t":"P_LHJ","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_SA","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_LJY","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_CES","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_LHJ","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_MH","l":["meeting"],"g":"B"},{"s":"EV_NVHQ","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_NVHQ","t":"P_CSY","l":["meeting"],"g":"B"},{"s":"EV_NVHQ","t":"P_LHJ","l":["meeting"],"g":"B"},{"s":"EV_NOBU","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_NOBU","t":"P_EM","l":["meeting"],"g":"B"},{"s":"EV_NOBU","t":"P_LE","l":["meeting"],"g":"B"},{"s":"EV_STARGATE","t":"P_LE","l":["meeting"],"g":"B"},{"s":"EV_STARGATE","t":"P_SA","l":["meeting"],"g":"B"},{"s":"EV_STARGATE","t":"P_TR","l":["meeting"],"g":"B"},{"s":"EV_MSPART","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_MSPART","t":"P_DA","l":["meeting"],"g":"B"},{"s":"EV_MSPART","t":"P_SN","l":["meeting"],"g":"B"},{"s":"C_NV","t":"P_CK","l":["people"],"g":"A"},{"s":"C_NV","t":"P_DSQ","l":["people"],"g":"A"},{"s":"G_TRE","t":"P_SB","l":["policy"],"g":"B"},{"s":"G_TRE","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_STATE","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_BIS","t":"G_DOC","l":["policy"],"g":"A"},{"s":"G_BIS","t":"P_JK","l":["policy"],"g":"A"},{"s":"G_USTR","t":"P_JG","l":["policy"],"g":"B"},{"s":"G_USTR","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"P_MK","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"G_PCAST","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_MK","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_DS","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_JH","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_LS","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_LE","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_MZ","l":["policy"],"g":"A"},{"s":"C_NV","t":"G_BIS","l":["policy"],"g":"A"},{"s":"EV_GENEVA","t":"P_SB","l":["meeting"],"g":"B"},{"s":"EV_GENEVA","t":"P_JG","l":["meeting"],"g":"B"},{"s":"EV_GENEVA","t":"P_HLF","l":["meeting"],"g":"B"},{"s":"EV_LONDON","t":"P_SB","l":["meeting"],"g":"B"},{"s":"EV_LONDON","t":"P_HL","l":["meeting"],"g":"B"},{"s":"EV_LONDON","t":"P_JG","l":["meeting"],"g":"B"},{"s":"EV_LONDON","t":"P_HLF","l":["meeting"],"g":"B"},{"s":"P_HLF","t":"P_SB","l":["policy"],"g":"B"},{"s":"P_JG","t":"P_WWT","l":["policy"],"g":"B"},{"s":"EV_BEIJING","t":"P_TR","l":["meeting"],"g":"B"},{"s":"EV_BEIJING","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_BEIJING","t":"P_EM","l":["meeting"],"g":"B"},{"s":"EV_BEIJING","t":"P_MR","l":["meeting"],"g":"B"},{"s":"C_ANT","t":"P_TC","l":["people"],"g":"B"},{"s":"C_OAI","t":"P_CL","l":["people"],"g":"B"},{"s":"C_GDM","t":"P_DH","l":["people"],"g":"B"},{"s":"C_GDM","t":"P_KK","l":["people"],"g":"B"},{"s":"C_GDM","t":"C_GOOG","l":["people"],"g":"B"},{"s":"C_SBG","t":"P_MS","l":["people"],"g":"B"},{"s":"C_ARM","t":"C_SBG","l":["investment"],"g":"B"},{"s":"C_OAI","t":"C_SBG","l":["investment"],"g":"B"},{"s":"C_SBG","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_OAI","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_ORCL","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_MGX","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_NV","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_MSFT","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_ARM","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"PJ_STAR","t":"P_MS","l":["people"],"g":"A"},{"s":"EV_STARGATE","t":"P_MS","l":["meeting"],"g":"B"},{"s":"P_JH","t":"P_MS","l":["meeting"],"g":"B"},{"s":"C_TSMC","t":"P_CCW","l":["people"],"g":"B"},{"s":"P_CCW","t":"P_JH","l":["meeting"],"g":"B"},{"s":"P_CCW","t":"P_CTW","l":["meeting"],"g":"B"},{"s":"C_MU","t":"P_SM","l":["people"],"g":"B"},{"s":"C_AVGO","t":"P_HT","l":["people"],"g":"A"},{"s":"C_META","t":"P_HT","l":["people"],"g":"A"},{"s":"C_AVGO","t":"C_OAI","l":["supply"],"g":"A"},{"s":"C_SKH","t":"P_KNJ","l":["people"],"g":"A"},{"s":"EV_COMPUTEX","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_COMPUTEX","t":"P_CTW","l":["meeting"],"g":"B"},{"s":"EV_COMPUTEX","t":"P_KNJ","l":["meeting"],"g":"B"},{"s":"C_HF","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_NV","t":"C_SBE","l":["investment"],"g":"A"},{"s":"C_OAI","t":"C_SBE","l":["customer"],"g":"A"},{"s":"C_NV","t":"G_SAMR","l":["policy"],"g":"A"},{"s":"G_CNSC","t":"G_SAMR","l":["policy"],"g":"B"},{"s":"C_NV","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_ALI","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_BYTE","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_NV","t":"P_TR","l":["policy"],"g":"B"},{"s":"C_BYTE","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_ALI","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_NV","t":"C_TENC","l":["customer"],"g":"B"},{"s":"P_JH","t":"P_MC","l":["people"],"g":"B"},{"s":"C_TSMC","t":"P_MC","l":["people"],"g":"B"},{"s":"P_JH","t":"P_LBT","l":["people"],"g":"B"},{"s":"C_INTC","t":"P_LBT","l":["people"],"g":"A"},{"s":"EV_KKANBU2","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_KKANBU2","t":"P_LH","l":["meeting"],"g":"B"},{"s":"EV_KKANBU2","t":"P_MH","l":["meeting"],"g":"B"},{"s":"EV_KKANBU2","t":"P_CTW","l":["meeting"],"g":"B"},{"s":"EV_KKANBU2","t":"P_KNJ","l":["meeting"],"g":"B"},{"s":"C_LAMBDA","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_NSCALE","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_CRUSOE","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_FN","t":"C_NV","l":["supply"],"g":"A"},{"s":"C_CW","t":"P_MI","l":["people"],"g":"A"},{"s":"C_CW","t":"P_GH","l":["people"],"g":"A"},{"s":"O_BROOK","t":"P_GH","l":["people"],"g":"A"},{"s":"O_BROOK","t":"P_SNJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SNJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SCN","l":["people"],"g":"A"},{"s":"C_NV","t":"P_JOD","l":["people"],"g":"A"},{"s":"C_MU","t":"P_TML","l":["people"],"g":"A"},{"s":"C_TSMC","t":"P_TML","l":["people"],"g":"A"},{"s":"C_MU","t":"P_RS","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_RS","l":["people"],"g":"A"},{"s":"C_BLK","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_INTC","t":"P_BN","l":["people"],"g":"A"},{"s":"C_BLK","t":"P_BN","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_JGZ","l":["people"],"g":"A"},{"s":"C_SEQ","t":"P_JGZ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_MST","l":["people"],"g":"A"},{"s":"C_SEQ","t":"P_MST","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_MST","l":["people"],"g":"A"},{"s":"C_NV","t":"P_ABS","l":["people"],"g":"A"},{"s":"C_SNPS","t":"P_ABS","l":["people"],"g":"A"},{"s":"C_SNPS","t":"P_HJ","l":["people"],"g":"A"}]};
+const DATA_ORG={"nodes":[{"id":"C_ASE","n":"ASE","t":"company","c":"TW","d":"Packaging & test"},{"id":"C_SEM","n":"Samsung Electro-Mechanics","t":"company","c":"KR","d":"Package substrates"},{"id":"P_MH","n":"Madison Huang","t":"person","c":"US","d":"Daughter; NVIDIA senior director, physical AI product marketing"},{"id":"P_TC","n":"Tino Cuéllar","t":"person","c":"US","d":"Anthropic chief global affairs officer"},{"id":"C_QUA","n":"Quanta","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"G_SAMR","n":"China SAMR","t":"government","c":"CN","d":"State Administration for Market Regulation (antitrust)"},{"id":"U_STAN","n":"Stanford University","t":"institution","c":"US","d":""},{"id":"C_COH","n":"Coherent","t":"company","c":"US","d":"Optical communications"},{"id":"F_HF","n":"Jen-Hsun & Lori Huang Foundation","t":"foundation","c":"US","d":"Assets about $9.2bn (end-2024)"},{"id":"P_JYH","n":"Jun Young-hyun","t":"person","c":"KR","d":"Samsung Electronics vice chairman, DS division head"},{"id":"C_MGX","n":"MGX","t":"company","c":"AE","d":"AI investment"},{"id":"C_FN","n":"Fabrinet","t":"company","c":"TH","d":"Optical component contract manufacturing"},{"id":"C_MSFT","n":"Microsoft · Satya Nadella","t":"company","c":"US","d":"Cloud"},{"id":"C_BYTE","n":"ByteDance","t":"company","c":"CN","d":"Internet & AI"},{"id":"P_CM","n":"Chris Malachowsky","t":"person","c":"US","d":"NVIDIA co-founder"},{"id":"P_HLF","n":"He Lifeng","t":"person","c":"CN","d":"Chinese vice premier"},{"id":"P_SCN","n":"Stephen C. Neal","t":"person","c":"US","d":"NVIDIA director; oversight committee member"},{"id":"O_BROOK","n":"Brookings Institution","t":"institution","c":"US","d":"Think tank"},{"id":"C_GEN","n":"Generate Biomedicines","t":"company","c":"US","d":"New in 2026"},{"id":"C_GOOG","n":"Alphabet (Google) · Sundar Pichai","t":"company","c":"US","d":"Cloud; in-house TPU"},{"id":"P_WWT","n":"Wang Wentao","t":"person","c":"CN","d":"Chinese commerce minister"},{"id":"C_SK","n":"SK Group · Chey Tae-won","t":"company","c":"KR","d":"Holding company"},{"id":"G_MSIT","n":"Korea Ministry of Science and ICT","t":"government","c":"KR","d":""},{"id":"C_NEB","n":"Nebius","t":"company","c":"NL","d":"Neocloud"},{"id":"P_CK","n":"Colette Kress","t":"person","c":"US","d":"NVIDIA CFO & interim CEO"},{"id":"C_NAV","n":"NAVER · Lee Hae-jin · Choi Soo-yeon","t":"company","c":"KR","d":"Cloud & AI factory"},{"id":"P_DSQ","n":"Debora Shoquist","t":"person","c":"US","d":"NVIDIA EVP, operations"},{"id":"C_NSCALE","n":"Nscale","t":"company","c":"GB","d":"Neocloud (private)"},{"id":"P_TR","n":"Donald Trump","t":"person","c":"US","d":"U.S. president"},{"id":"G_STATE","n":"U.S. State Department","t":"government","c":"US","d":"Diplomacy & export-control talks"},{"id":"G_OSTP","n":"White House OSTP","t":"government","c":"US","d":"Science & technology policy"},{"id":"F_T12","n":"Huang 2012 Irrevocable Trust","t":"foundation","c":"US","d":"Co-trustees: the couple"},{"id":"C_TENC","n":"Tencent","t":"company","c":"CN","d":"Internet & cloud"},{"id":"C_TSMC","n":"TSMC · C.C. Wei · Morris Chang","t":"company","c":"TW","d":"Foundry & CoWoS"},{"id":"G_BIS","n":"U.S. Commerce BIS","t":"government","c":"US","d":"Bureau of Industry and Security (export controls)"},{"id":"G_TNM","n":"Trust for the National Mall","t":"foundation","c":"US","d":"Nonprofit raising funds for White House ballroom"},{"id":"C_SKH","n":"SK hynix · Kwak Noh-jung","t":"company","c":"KR","d":"HBM"},{"id":"C_GDM","n":"Google DeepMind · Demis Hassabis","t":"company","c":"GB","d":"AI research (Alphabet)"},{"id":"P_SNJ","n":"Suzanne Nora Johnson","t":"person","c":"US","d":"NVIDIA director; chair, national security & export-control oversight committee"},{"id":"F_TRT","n":"Huang Irrevocable Remainder Trust","t":"foundation","c":"US","d":"Set up Feb 19, 2016; co-trustees: the couple"},{"id":"P_SB","n":"Scott Bessent","t":"person","c":"US","d":"U.S. Treasury secretary"},{"id":"PJ_STAR","n":"Stargate","t":"project","c":"US","d":"AI infrastructure joint venture"},{"id":"C_BRK","n":"Brookfield","t":"company","c":"CA","d":"Infrastructure investment"},{"id":"P_JH","n":"Jensen Huang","t":"person","c":"US/TW","d":"NVIDIA co-founder & former CEO (resigned Nov 12, 2026)"},{"id":"C_SKT","n":"SK Telecom","t":"company","c":"KR","d":"AI cloud & data centers"},{"id":"G_USTR","n":"USTR","t":"government","c":"US","d":"Trade"},{"id":"P_MR","n":"Marco Rubio","t":"person","c":"US","d":"U.S. secretary of state & national security adviser"},{"id":"C_SBG","n":"SoftBank Group · Masayoshi Son","t":"company","c":"JP","d":"Investment holding"},{"id":"C_OAI","n":"OpenAI · Sam Altman","t":"company","c":"US","d":"AI models"},{"id":"P_BN","n":"Barbara Novick","t":"person","c":"US","d":"Intel director; BlackRock co-founder"},{"id":"C_SEC","n":"Samsung Electronics · Lee Jae-yong","t":"company","c":"KR","d":"Memory & foundry"},{"id":"G_CNSC","n":"PRC State Council","t":"government","c":"CN","d":""},{"id":"C_LG","n":"LG Group · Koo Kwang-mo","t":"company","c":"KR","d":"AI factory & robotics"},{"id":"C_SBE","n":"SB Energy","t":"company","c":"US","d":"Energy & data-center sites"},{"id":"C_NV","n":"NVIDIA","t":"company","c":"US","d":"GPU & AI computing"},{"id":"C_FOX","n":"Foxconn","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"P_JK","n":"Jeffrey Kessler","t":"person","c":"US","d":"Commerce under secretary for industry & security (BIS)"},{"id":"G_SGPF","n":"Singapore Police / MHA","t":"government","c":"SG","d":""},{"id":"U_SNU","n":"Seoul National University","t":"institution","c":"KR","d":""},{"id":"C_LAMBDA","n":"Lambda","t":"company","c":"US","d":"Neocloud (private)"},{"id":"F_TARG","n":"TARG LLCs (4)","t":"foundation","c":"US","d":"Living trust is sole member"},{"id":"C_SPX","n":"SpaceX (xAI) · Elon Musk","t":"company","c":"US","d":"Absorbed xAI"},{"id":"C_MAG","n":"Magnetar Capital","t":"company","c":"US","d":"Hedge fund (CoreWeave top shareholder)"},{"id":"G_DOC","n":"U.S. Commerce Department","t":"government","c":"US","d":"Export controls"},{"id":"G_CAC","n":"Cyberspace Administration of China","t":"government","c":"CN","d":"Internet & data regulation"},{"id":"C_ALI","n":"Alibaba","t":"company","c":"CN","d":"E-commerce & cloud"},{"id":"C_REB","n":"Rebellions","t":"company","c":"KR","d":"NPU"},{"id":"P_RS","n":"Robert Swan","t":"person","c":"US","d":"Micron director; former Intel CEO"},{"id":"C_DOO","n":"Doosan Group · Park Jeong-won","t":"company","c":"KR","d":"Robotics & energy"},{"id":"C_MEGA","n":"Megaspeed","t":"company","c":"SG","d":"GPU cloud"},{"id":"C_META","n":"Meta · Mark Zuckerberg","t":"company","c":"US","d":"Social & AI models"},{"id":"P_ABS","n":"A. Brooke Seawell","t":"person","c":"US","d":"NVIDIA director; audit committee chair"},{"id":"G_NVPAC","n":"NVIDIA Employees PAC","t":"foundation","c":"US","d":"FEC-registered Aug 27, 2026"},{"id":"C_HF","n":"Hugging Face","t":"company","c":"US","d":"Open-source AI model hub"},{"id":"G_PCAST","n":"PCAST","t":"institution","c":"US","d":"Presidential advisory council"},{"id":"P_JOD","n":"John O. Dabiri","t":"person","c":"US","d":"NVIDIA director; oversight committee member"},{"id":"P_MST","n":"Mark Stevens","t":"person","c":"US","d":"NVIDIA director"},{"id":"C_HMG","n":"Hyundai Motor Group · Chung Eui-sun","t":"company","c":"KR","d":"Autonomous driving & robotics"},{"id":"P_KK","n":"Koray Kavukcuoglu","t":"person","c":"US","d":"Google DeepMind SVP; Google chief AI architect"},{"id":"P_HJ","n":"Harvey C. Jones","t":"person","c":"US","d":"NVIDIA first board chairman"},{"id":"P_JG","n":"Jamieson Greer","t":"person","c":"US","d":"U.S. trade representative"},{"id":"C_NOK","n":"Nokia","t":"company","c":"FI","d":"Telecom equipment"},{"id":"C_AMZN","n":"Amazon (AWS) · Andy Jassy","t":"company","c":"US","d":"Cloud; in-house Trainium"},{"id":"P_HL","n":"Howard Lutnick","t":"person","c":"US","d":"U.S. commerce secretary"},{"id":"C_AVGO","n":"Broadcom · Hock Tan","t":"company","c":"US","d":"Custom AI chips & networking"},{"id":"U_OSU","n":"Oregon State University","t":"institution","c":"US","d":""},{"id":"P_DS","n":"David Sacks","t":"person","c":"US","d":"PCAST co-chair (former AI & crypto czar)"},{"id":"C_CRUSOE","n":"Crusoe","t":"company","c":"US","d":"Neocloud (private)"},{"id":"C_WIS","n":"Wistron","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"C_AMD","n":"AMD · Lisa Su","t":"company","c":"US","d":"GPU & CPU"},{"id":"G_WH","n":"White House","t":"government","c":"US","d":""},{"id":"C_ORCL","n":"Oracle · Larry Ellison","t":"company","c":"US","d":"Cloud (OCI); Stargate"},{"id":"F_LT","n":"Huang Living Trust","t":"foundation","c":"US","d":"Holds about 530m NVIDIA shares (est.)"},{"id":"G_TRE","n":"U.S. Treasury Department","t":"government","c":"US","d":"Economic security & sanctions"},{"id":"G_MOFCOM","n":"PRC Commerce Ministry","t":"government","c":"CN","d":""},{"id":"P_GH","n":"Glenn Hutchins","t":"person","c":"US","d":"CoreWeave lead independent director; Silver Lake co-founder"},{"id":"C_NC","n":"NCSOFT · Kim Taek-jin","t":"company","c":"KR","d":"Games"},{"id":"P_CL","n":"Chris Lehane","t":"person","c":"US","d":"OpenAI chief global affairs officer"},{"id":"C_ARM","n":"Arm","t":"company","c":"UK","d":"Held Sep 2025; sold Q4 2025"},{"id":"C_HUMAIN","n":"Humain","t":"company","c":"SA","d":"Saudi PIF-owned AI company"},{"id":"P_JGZ","n":"James Goetz","t":"person","c":"US","d":"Intel director; Sequoia partner"},{"id":"C_BLK","n":"BlackRock","t":"company","c":"US","d":"Asset manager (7.43% of NVIDIA)"},{"id":"P_LJM","n":"Lee Jae-myung","t":"person","c":"KR","d":"South Korean president"},{"id":"P_LH","n":"Lori Huang","t":"person","c":"US","d":"Spouse; Huang Foundation president; living-trust co-trustee"},{"id":"P_MK","n":"Michael Kratsios","t":"person","c":"US","d":"White House OSTP director; PCAST co-chair"},{"id":"C_CW","n":"CoreWeave · Michael Intrator","t":"company","c":"US","d":"Neocloud"},{"id":"P_AH","n":"Alice Huang (Huang Le)","t":"person","c":"CN","d":"Former Megaspeed executive; not a family member"},{"id":"P_TML","n":"Mark Liu","t":"person","c":"TW","d":"Micron director; former TSMC executive chairman"},{"id":"C_SNPS","n":"Synopsys","t":"company","c":"US","d":"EDA"},{"id":"P_SH","n":"Spencer Huang","t":"person","c":"US","d":"Son; NVIDIA director, robotics software product management"},{"id":"C_SEQ","n":"Sequoia Capital","t":"company","c":"US","d":"Venture capital"},{"id":"C_MU","n":"Micron · Sanjay Mehrotra","t":"company","c":"US","d":"HBM"},{"id":"C_ANT","n":"Anthropic · Dario Amodei","t":"company","c":"US","d":"AI models"},{"id":"C_INTC","n":"Intel · Lip-Bu Tan","t":"company","c":"US","d":"CPU & foundry"}],"edges":[{"s":"C_NV","t":"C_TSMC","l":["supply"],"g":"B"},{"s":"C_FOX","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_QUA","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_WIS","l":["supply"],"g":"B"},{"s":"C_ASE","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_MU","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SKH","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SEC","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SK","l":["supply"],"g":"B"},{"s":"C_HMG","t":"C_NV","l":["supply","investment"],"g":"B"},{"s":"C_NAV","t":"C_NV","l":["supply","investment"],"g":"B"},{"s":"C_NV","t":"G_MSIT","l":["supply","policy"],"g":"B"},{"s":"C_NV","t":"C_SKT","l":["supply"],"g":"B"},{"s":"C_REB","t":"C_SKT","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_REB","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_OAI","l":["customer","investment"],"g":"B"},{"s":"C_ANT","t":"C_NV","l":["customer","investment"],"g":"B"},{"s":"C_ANT","t":"C_MSFT","l":["customer","investment","meeting"],"g":"B"},{"s":"C_CW","t":"C_NV","l":["customer","investment"],"g":"A"},{"s":"C_NEB","t":"C_NV","l":["customer","investment"],"g":"A"},{"s":"C_NV","t":"C_SPX","l":["customer","investment"],"g":"A"},{"s":"C_CW","t":"C_MAG","l":["investment"],"g":"B"},{"s":"C_INTC","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_NV","t":"C_SNPS","l":["investment"],"g":"A"},{"s":"C_NOK","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_COH","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_BRK","t":"C_NAV","l":["investment"],"g":"B"},{"s":"P_JH","t":"P_TR","l":["policy","meeting"],"g":"B"},{"s":"C_NV","t":"G_DOC","l":["policy"],"g":"B"},{"s":"G_WH","t":"P_TR","l":["policy"],"g":"B"},{"s":"G_DOC","t":"G_WH","l":["policy"],"g":"A"},{"s":"C_NV","t":"G_TNM","l":["policy"],"g":"B"},{"s":"P_HLF","t":"P_JH","l":["policy"],"g":"B"},{"s":"P_JH","t":"P_WWT","l":["policy"],"g":"B"},{"s":"G_CNSC","t":"P_HLF","l":["policy"],"g":"B"},{"s":"G_MOFCOM","t":"P_WWT","l":["policy"],"g":"B"},{"s":"C_HMG","t":"G_MSIT","l":["policy"],"g":"B"},{"s":"C_MEGA","t":"G_SGPF","l":["policy"],"g":"B"},{"s":"C_NV","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"P_HJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_CM","l":["people"],"g":"A"},{"s":"C_NV","t":"P_MH","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SH","l":["people"],"g":"A"},{"s":"P_JH","t":"P_LH","l":["people","meeting"],"g":"A"},{"s":"P_JH","t":"P_MH","l":["people","meeting"],"g":"B"},{"s":"P_JH","t":"P_SH","l":["people"],"g":"B"},{"s":"P_JH","t":"C_AMD","l":["people"],"g":"B"},{"s":"F_HF","t":"P_LH","l":["people"],"g":"A"},{"s":"F_HF","t":"P_JH","l":["people"],"g":"A"},{"s":"F_LT","t":"P_LH","l":["people"],"g":"A"},{"s":"F_LT","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"F_LT","l":["people"],"g":"A"},{"s":"C_NV","t":"F_HF","l":["people"],"g":"A"},{"s":"P_AH","t":"P_JH","l":["people"],"g":"B"},{"s":"C_SEC","t":"P_JYH","l":["people"],"g":"B"},{"s":"C_SK","t":"C_SKH","l":["people","meeting"],"g":"B"},{"s":"C_SK","t":"C_SKT","l":["people"],"g":"B"},{"s":"C_SEC","t":"C_SEM","l":["people"],"g":"B"},{"s":"P_JH","t":"U_SNU","l":["meeting"],"g":"B"},{"s":"F_T12","t":"P_LH","l":["people"],"g":"A"},{"s":"F_T12","t":"P_JH","l":["people"],"g":"A"},{"s":"F_TRT","t":"P_LH","l":["people"],"g":"A"},{"s":"F_TRT","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"F_T12","l":["people"],"g":"A"},{"s":"C_NV","t":"F_TRT","l":["people"],"g":"A"},{"s":"F_LT","t":"F_TARG","l":["people"],"g":"A"},{"s":"C_NV","t":"F_TARG","l":["people"],"g":"A"},{"s":"C_NV","t":"G_NVPAC","l":["policy"],"g":"A"},{"s":"G_NVPAC","t":"P_MH","l":["policy"],"g":"A"},{"s":"C_GEN","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_LG","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_DOO","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NC","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_MSFT","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_META","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_AMZN","t":"C_NV","l":["customer","supply"],"g":"B"},{"s":"C_NV","t":"C_ORCL","l":["customer"],"g":"B"},{"s":"C_HUMAIN","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_HUMAIN","t":"C_SPX","l":["customer"],"g":"B"},{"s":"C_OAI","t":"C_ORCL","l":["customer","meeting"],"g":"B"},{"s":"C_MSFT","t":"C_OAI","l":["customer","investment"],"g":"B"},{"s":"C_AMZN","t":"C_OAI","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_OAI","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_META","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_MSFT","l":["customer"],"g":"B"},{"s":"C_ANT","t":"C_GOOG","l":["customer"],"g":"B"},{"s":"P_JH","t":"C_META","l":["meeting"],"g":"B"},{"s":"C_SPX","t":"P_JH","l":["meeting"],"g":"B"},{"s":"P_JH","t":"U_OSU","l":["academia"],"g":"A"},{"s":"P_LH","t":"U_OSU","l":["academia"],"g":"A"},{"s":"P_JH","t":"U_STAN","l":["academia"],"g":"A"},{"s":"F_HF","t":"U_OSU","l":["philanthropy"],"g":"A"},{"s":"F_HF","t":"U_STAN","l":["philanthropy"],"g":"B"},{"s":"C_CW","t":"F_HF","l":["philanthropy"],"g":"A"},{"s":"G_DOC","t":"P_HL","l":["policy"],"g":"A"},{"s":"G_STATE","t":"P_MR","l":["policy"],"g":"B"},{"s":"G_WH","t":"P_MR","l":["policy"],"g":"B"},{"s":"P_MR","t":"P_TR","l":["policy","meeting"],"g":"B"},{"s":"P_HL","t":"P_MR","l":["policy"],"g":"B"},{"s":"C_NV","t":"P_CK","l":["people"],"g":"A"},{"s":"C_NV","t":"P_DSQ","l":["people"],"g":"A"},{"s":"G_TRE","t":"P_SB","l":["policy"],"g":"B"},{"s":"G_TRE","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_STATE","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_BIS","t":"G_DOC","l":["policy"],"g":"A"},{"s":"G_BIS","t":"P_JK","l":["policy"],"g":"A"},{"s":"G_USTR","t":"P_JG","l":["policy"],"g":"B"},{"s":"G_USTR","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"P_MK","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"G_PCAST","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_MK","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_DS","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_JH","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"C_AMD","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"C_ORCL","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"C_META","l":["policy"],"g":"A"},{"s":"C_NV","t":"G_BIS","l":["policy"],"g":"A"},{"s":"P_HLF","t":"P_SB","l":["policy","meeting"],"g":"B"},{"s":"P_JG","t":"P_WWT","l":["policy"],"g":"B"},{"s":"C_ANT","t":"P_TC","l":["people"],"g":"B"},{"s":"C_OAI","t":"P_CL","l":["people"],"g":"B"},{"s":"C_GDM","t":"P_KK","l":["people"],"g":"B"},{"s":"C_GDM","t":"C_GOOG","l":["people"],"g":"B"},{"s":"C_ARM","t":"C_SBG","l":["investment"],"g":"B"},{"s":"C_OAI","t":"C_SBG","l":["investment","meeting"],"g":"B"},{"s":"C_SBG","t":"PJ_STAR","l":["investment","people"],"g":"A"},{"s":"C_OAI","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_ORCL","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_MGX","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_NV","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_MSFT","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_ARM","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"P_JH","t":"C_SBG","l":["meeting"],"g":"B"},{"s":"C_TSMC","t":"P_JH","l":["meeting","people"],"g":"B"},{"s":"C_TSMC","t":"C_SK","l":["meeting"],"g":"B"},{"s":"C_META","t":"C_AVGO","l":["people"],"g":"A"},{"s":"C_AVGO","t":"C_OAI","l":["supply"],"g":"A"},{"s":"C_HF","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_NV","t":"C_SBE","l":["investment"],"g":"A"},{"s":"C_OAI","t":"C_SBE","l":["customer"],"g":"A"},{"s":"C_NV","t":"G_SAMR","l":["policy"],"g":"A"},{"s":"G_CNSC","t":"G_SAMR","l":["policy"],"g":"B"},{"s":"C_NV","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_ALI","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_BYTE","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_NV","t":"P_TR","l":["policy"],"g":"B"},{"s":"C_BYTE","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_ALI","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_NV","t":"C_TENC","l":["customer"],"g":"B"},{"s":"P_JH","t":"C_INTC","l":["people"],"g":"B"},{"s":"C_LAMBDA","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_NSCALE","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_CRUSOE","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_FN","t":"C_NV","l":["supply"],"g":"A"},{"s":"C_CW","t":"P_GH","l":["people"],"g":"A"},{"s":"O_BROOK","t":"P_GH","l":["people"],"g":"A"},{"s":"O_BROOK","t":"P_SNJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SNJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SCN","l":["people"],"g":"A"},{"s":"C_NV","t":"P_JOD","l":["people"],"g":"A"},{"s":"C_MU","t":"P_TML","l":["people"],"g":"A"},{"s":"C_TSMC","t":"P_TML","l":["people"],"g":"A"},{"s":"C_MU","t":"P_RS","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_RS","l":["people"],"g":"A"},{"s":"C_BLK","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_INTC","t":"P_BN","l":["people"],"g":"A"},{"s":"C_BLK","t":"P_BN","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_JGZ","l":["people"],"g":"A"},{"s":"C_SEQ","t":"P_JGZ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_MST","l":["people"],"g":"A"},{"s":"C_SEQ","t":"P_MST","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_MST","l":["people"],"g":"A"},{"s":"C_NV","t":"P_ABS","l":["people"],"g":"A"},{"s":"C_SNPS","t":"P_ABS","l":["people"],"g":"A"},{"s":"C_SNPS","t":"P_HJ","l":["people"],"g":"A"},{"s":"P_JH","t":"P_LJM","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_SK","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_NAV","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_SEC","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"P_LJM","t":"C_SK","l":["meeting"],"g":"B"},{"s":"P_LJM","t":"C_NAV","l":["meeting"],"g":"B"},{"s":"P_LJM","t":"C_SEC","l":["meeting"],"g":"B"},{"s":"P_LJM","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"C_SK","t":"C_NAV","l":["meeting"],"g":"B"},{"s":"C_SK","t":"C_SEC","l":["meeting"],"g":"B"},{"s":"C_SK","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"C_NAV","t":"C_SEC","l":["meeting"],"g":"B"},{"s":"C_NAV","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"C_SEC","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_LG","l":["meeting"],"g":"B"},{"s":"C_LG","t":"C_SK","l":["meeting"],"g":"B"},{"s":"C_LG","t":"C_NAV","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_OAI","l":["meeting"],"g":"B"},{"s":"C_OAI","t":"C_SEC","l":["meeting"],"g":"B"},{"s":"C_OAI","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"C_OAI","t":"C_NAV","l":["meeting"],"g":"B"},{"s":"C_OAI","t":"P_MH","l":["meeting"],"g":"B"},{"s":"C_SEC","t":"P_MH","l":["meeting"],"g":"B"},{"s":"C_HMG","t":"P_MH","l":["meeting"],"g":"B"},{"s":"C_NAV","t":"P_MH","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_ORCL","l":["meeting"],"g":"B"},{"s":"C_SPX","t":"C_ORCL","l":["meeting"],"g":"B"},{"s":"C_ORCL","t":"P_TR","l":["meeting"],"g":"B"},{"s":"C_ORCL","t":"C_SBG","l":["meeting"],"g":"B"},{"s":"C_OAI","t":"P_TR","l":["meeting"],"g":"B"},{"s":"P_TR","t":"C_SBG","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_ANT","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_MSFT","l":["meeting"],"g":"B"},{"s":"P_SB","t":"P_JG","l":["meeting"],"g":"B"},{"s":"P_JG","t":"P_HLF","l":["meeting"],"g":"B"},{"s":"P_SB","t":"P_HL","l":["meeting"],"g":"B"},{"s":"P_HL","t":"P_JG","l":["meeting"],"g":"B"},{"s":"P_HL","t":"P_HLF","l":["meeting"],"g":"B"},{"s":"P_TR","t":"C_SPX","l":["meeting"],"g":"B"},{"s":"P_JH","t":"P_MR","l":["meeting"],"g":"B"},{"s":"C_SPX","t":"P_MR","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_SKH","l":["meeting"],"g":"B"},{"s":"P_LH","t":"P_MH","l":["meeting"],"g":"B"},{"s":"P_LH","t":"C_SK","l":["meeting"],"g":"B"},{"s":"P_LH","t":"C_SKH","l":["meeting"],"g":"B"},{"s":"P_MH","t":"C_SK","l":["meeting"],"g":"B"},{"s":"P_MH","t":"C_SKH","l":["meeting"],"g":"B"}]};
+const DATA_AUG={"nodes":[{"id":"C_ASE","n":"ASE","t":"company","c":"TW","d":"Packaging & test"},{"id":"C_SEM","n":"Samsung Electro-Mechanics","t":"company","c":"KR","d":"Package substrates"},{"id":"P_HT","n":"Hock Tan","t":"person","c":"US","d":"Broadcom CEO"},{"id":"P_MH","n":"Madison Huang","t":"person","c":"US","d":"Daughter; NVIDIA senior director, physical AI product marketing"},{"id":"P_TC","n":"Tino Cuéllar","t":"person","c":"US","d":"Anthropic chief global affairs officer"},{"id":"C_QUA","n":"Quanta","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"G_SAMR","n":"China SAMR","t":"government","c":"CN","d":"State Administration for Market Regulation (antitrust)"},{"id":"U_STAN","n":"Stanford University","t":"institution","c":"US","d":""},{"id":"C_COH","n":"Coherent","t":"company","c":"US","d":"Optical communications"},{"id":"EV_SUMMIT","n":"SF AI summit","t":"event","c":"","d":"Event"},{"id":"F_HF","n":"Jen-Hsun & Lori Huang Foundation","t":"foundation","c":"US","d":"Assets about $9.2bn (end-2024)"},{"id":"P_JYH","n":"Jun Young-hyun","t":"person","c":"KR","d":"Samsung Electronics vice chairman, DS division head"},{"id":"C_MGX","n":"MGX","t":"company","c":"AE","d":"AI investment"},{"id":"EV_MSPART","n":"MS–NVIDIA–Anthropic partnership announcement","t":"event","c":"","d":"Event"},{"id":"C_FN","n":"Fabrinet","t":"company","c":"TH","d":"Optical component contract manufacturing"},{"id":"C_MSFT","n":"Microsoft","t":"company","c":"US","d":"Cloud"},{"id":"P_KNJ","n":"Kwak Noh-jung","t":"person","c":"KR","d":"SK hynix CEO"},{"id":"C_BYTE","n":"ByteDance","t":"company","c":"CN","d":"Internet & AI"},{"id":"EV_LONDON","n":"US-China London trade talks","t":"event","c":"","d":"Event"},{"id":"P_CM","n":"Chris Malachowsky","t":"person","c":"US","d":"NVIDIA co-founder"},{"id":"P_HLF","n":"He Lifeng","t":"person","c":"CN","d":"Chinese vice premier"},{"id":"P_LBT","n":"Lip-Bu Tan","t":"person","c":"US","d":"Intel CEO; former Cadence CEO"},{"id":"P_MZ","n":"Mark Zuckerberg","t":"person","c":"US","d":"Meta CEO"},{"id":"P_LE","n":"Larry Ellison","t":"person","c":"US","d":"Oracle chairman & CTO"},{"id":"P_LS","n":"Lisa Su","t":"person","c":"US","d":"AMD CEO; distant relative of Jensen Huang"},{"id":"P_SCN","n":"Stephen C. Neal","t":"person","c":"US","d":"NVIDIA director; oversight committee member"},{"id":"O_BROOK","n":"Brookings Institution","t":"institution","c":"US","d":"Think tank"},{"id":"P_SP","n":"Sundar Pichai","t":"person","c":"US","d":"Alphabet CEO"},{"id":"EV_HONGDAE","n":"Hongdae pork-belly dinner","t":"event","c":"","d":"Event"},{"id":"EV_BEIJING","n":"Trump state visit to China","t":"event","c":"","d":"Event"},{"id":"P_CCW","n":"C.C. Wei","t":"person","c":"TW","d":"TSMC chairman & CEO"},{"id":"C_GEN","n":"Generate Biomedicines","t":"company","c":"US","d":"New in 2026"},{"id":"P_KTJ","n":"Kim Taek-jin","t":"person","c":"KR","d":"NCSOFT co-CEO"},{"id":"C_GOOG","n":"Alphabet (Google)","t":"company","c":"US","d":"Cloud; in-house TPU"},{"id":"P_WWT","n":"Wang Wentao","t":"person","c":"CN","d":"Chinese commerce minister"},{"id":"C_SK","n":"SK Group","t":"company","c":"KR","d":"Holding company"},{"id":"G_MSIT","n":"Korea Ministry of Science and ICT","t":"government","c":"KR","d":""},{"id":"C_NEB","n":"Nebius","t":"company","c":"NL","d":"Neocloud"},{"id":"P_CK","n":"Colette Kress","t":"person","c":"US","d":"NVIDIA CFO & interim CEO"},{"id":"C_NAV","n":"NAVER","t":"company","c":"KR","d":"Cloud & AI factory"},{"id":"P_DSQ","n":"Debora Shoquist","t":"person","c":"US","d":"NVIDIA EVP, operations"},{"id":"C_NSCALE","n":"Nscale","t":"company","c":"GB","d":"Neocloud (private)"},{"id":"EV_CHICKEN","n":"Kkanbu Chicken dinner (Samseong-dong)","t":"event","c":"","d":"Event"},{"id":"P_TR","n":"Donald Trump","t":"person","c":"US","d":"U.S. president"},{"id":"G_STATE","n":"U.S. State Department","t":"government","c":"US","d":"Diplomacy & export-control talks"},{"id":"G_OSTP","n":"White House OSTP","t":"government","c":"US","d":"Science & technology policy"},{"id":"EV_COMPUTEX","n":"Computex SK hynix booth meeting","t":"event","c":"","d":"Event"},{"id":"EV_KKANBU2","n":"Kkanbu Chicken dinner (Chey Tae-won, Jun 7, 2026)","t":"event","c":"","d":"Event"},{"id":"F_T12","n":"Huang 2012 Irrevocable Trust","t":"foundation","c":"US","d":"Co-trustees: the couple"},{"id":"C_TENC","n":"Tencent","t":"company","c":"CN","d":"Internet & cloud"},{"id":"P_MI","n":"Michael Intrator","t":"person","c":"US","d":"CoreWeave chairman & CEO"},{"id":"C_TSMC","n":"TSMC","t":"company","c":"TW","d":"Foundry & CoWoS"},{"id":"P_LJY","n":"Lee Jae-yong","t":"person","c":"KR","d":"Samsung Electronics chairman"},{"id":"G_BIS","n":"U.S. Commerce BIS","t":"government","c":"US","d":"Bureau of Industry and Security (export controls)"},{"id":"G_TNM","n":"Trust for the National Mall","t":"foundation","c":"US","d":"Nonprofit raising funds for White House ballroom"},{"id":"C_SKH","n":"SK hynix","t":"company","c":"KR","d":"HBM"},{"id":"C_GDM","n":"Google DeepMind","t":"company","c":"GB","d":"AI research (Alphabet)"},{"id":"P_SNJ","n":"Suzanne Nora Johnson","t":"person","c":"US","d":"NVIDIA director; chair, national security & export-control oversight committee"},{"id":"F_TRT","n":"Huang Irrevocable Remainder Trust","t":"foundation","c":"US","d":"Set up Feb 19, 2016; co-trustees: the couple"},{"id":"EV_STARGATE","n":"White House Stargate announcement","t":"event","c":"","d":"Event"},{"id":"P_SB","n":"Scott Bessent","t":"person","c":"US","d":"U.S. Treasury secretary"},{"id":"PJ_STAR","n":"Stargate","t":"project","c":"US","d":"AI infrastructure joint venture"},{"id":"C_BRK","n":"Brookfield","t":"company","c":"CA","d":"Infrastructure investment"},{"id":"P_JH","n":"Jensen Huang","t":"person","c":"US/TW","d":"NVIDIA co-founder & former CEO (resigned Nov 12, 2026)"},{"id":"C_SKT","n":"SK Telecom","t":"company","c":"KR","d":"AI cloud & data centers"},{"id":"P_LHJ","n":"Lee Hae-jin","t":"person","c":"KR","d":"NAVER founder & board chairman"},{"id":"G_USTR","n":"USTR","t":"government","c":"US","d":"Trade"},{"id":"P_MR","n":"Marco Rubio","t":"person","c":"US","d":"U.S. secretary of state & national security adviser"},{"id":"C_SBG","n":"SoftBank Group","t":"company","c":"JP","d":"Investment holding"},{"id":"C_OAI","n":"OpenAI","t":"company","c":"US","d":"AI models"},{"id":"P_MS","n":"Masayoshi Son","t":"person","c":"JP","d":"SoftBank Group chairman & CEO"},{"id":"P_CTW","n":"Chey Tae-won","t":"person","c":"KR","d":"SK Group chairman"},{"id":"P_BN","n":"Barbara Novick","t":"person","c":"US","d":"Intel director; BlackRock co-founder"},{"id":"C_SEC","n":"Samsung Electronics","t":"company","c":"KR","d":"Memory & foundry"},{"id":"P_CSY","n":"Choi Soo-yeon","t":"person","c":"KR","d":"NAVER CEO"},{"id":"EV_NOBU","n":"Nobu Palo Alto dinner","t":"event","c":"","d":"Event"},{"id":"G_CNSC","n":"PRC State Council","t":"government","c":"CN","d":""},{"id":"C_LG","n":"LG Group","t":"company","c":"KR","d":"AI factory & robotics"},{"id":"C_SBE","n":"SB Energy","t":"company","c":"US","d":"Energy & data-center sites"},{"id":"EV_APEC","n":"Gyeongju APEC meeting with President Lee","t":"event","c":"","d":"Event"},{"id":"C_NV","n":"NVIDIA","t":"company","c":"US","d":"GPU & AI computing"},{"id":"C_FOX","n":"Foxconn","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"EV_NVHQ","n":"NAVER executives visit NVIDIA HQ","t":"event","c":"","d":"Event"},{"id":"P_JK","n":"Jeffrey Kessler","t":"person","c":"US","d":"Commerce under secretary for industry & security (BIS)"},{"id":"P_DH","n":"Demis Hassabis","t":"person","c":"GB","d":"Google DeepMind CEO; Alphabet chief scientist"},{"id":"G_SGPF","n":"Singapore Police / MHA","t":"government","c":"SG","d":""},{"id":"U_SNU","n":"Seoul National University","t":"institution","c":"KR","d":""},{"id":"C_LAMBDA","n":"Lambda","t":"company","c":"US","d":"Neocloud (private)"},{"id":"F_TARG","n":"TARG LLCs (4)","t":"foundation","c":"US","d":"Living trust is sole member"},{"id":"C_SPX","n":"SpaceX (xAI)","t":"company","c":"US","d":"Absorbed xAI"},{"id":"C_MAG","n":"Magnetar Capital","t":"company","c":"US","d":"Hedge fund (CoreWeave top shareholder)"},{"id":"G_DOC","n":"U.S. Commerce Department","t":"government","c":"US","d":"Export controls"},{"id":"P_SA","n":"Sam Altman","t":"person","c":"US","d":"OpenAI CEO"},{"id":"G_CAC","n":"Cyberspace Administration of China","t":"government","c":"CN","d":"Internet & data regulation"},{"id":"P_DA","n":"Dario Amodei","t":"person","c":"US","d":"Anthropic CEO"},{"id":"C_ALI","n":"Alibaba","t":"company","c":"CN","d":"E-commerce & cloud"},{"id":"C_REB","n":"Rebellions","t":"company","c":"KR","d":"NPU"},{"id":"P_RS","n":"Robert Swan","t":"person","c":"US","d":"Micron director; former Intel CEO"},{"id":"P_SM","n":"Sanjay Mehrotra","t":"person","c":"US","d":"Micron chairman & CEO"},{"id":"C_DOO","n":"Doosan Group","t":"company","c":"KR","d":"Robotics & energy"},{"id":"C_MEGA","n":"Megaspeed","t":"company","c":"SG","d":"GPU cloud"},{"id":"C_META","n":"Meta","t":"company","c":"US","d":"Social & AI models"},{"id":"P_ABS","n":"A. Brooke Seawell","t":"person","c":"US","d":"NVIDIA director; audit committee chair"},{"id":"P_MC","n":"Morris Chang","t":"person","c":"TW","d":"TSMC founder"},{"id":"G_NVPAC","n":"NVIDIA Employees PAC","t":"foundation","c":"US","d":"FEC-registered Aug 27, 2026"},{"id":"P_PJW","n":"Park Jeong-won","t":"person","c":"KR","d":"Doosan Group chairman"},{"id":"C_HF","n":"Hugging Face","t":"company","c":"US","d":"Open-source AI model hub"},{"id":"G_PCAST","n":"PCAST","t":"institution","c":"US","d":"Presidential advisory council"},{"id":"P_JOD","n":"John O. Dabiri","t":"person","c":"US","d":"NVIDIA director; oversight committee member"},{"id":"P_MST","n":"Mark Stevens","t":"person","c":"US","d":"NVIDIA director"},{"id":"C_HMG","n":"Hyundai Motor Group","t":"company","c":"KR","d":"Autonomous driving & robotics"},{"id":"P_KK","n":"Koray Kavukcuoglu","t":"person","c":"US","d":"Google DeepMind SVP; Google chief AI architect"},{"id":"P_KKM","n":"Koo Kwang-mo","t":"person","c":"KR","d":"LG Group chairman"},{"id":"P_HJ","n":"Harvey C. Jones","t":"person","c":"US","d":"NVIDIA first board chairman"},{"id":"P_CES","n":"Chung Eui-sun","t":"person","c":"KR","d":"Hyundai Motor Group chairman"},{"id":"P_JG","n":"Jamieson Greer","t":"person","c":"US","d":"U.S. trade representative"},{"id":"C_NOK","n":"Nokia","t":"company","c":"FI","d":"Telecom equipment"},{"id":"C_AMZN","n":"Amazon (AWS)","t":"company","c":"US","d":"Cloud; in-house Trainium"},{"id":"P_HL","n":"Howard Lutnick","t":"person","c":"US","d":"U.S. commerce secretary"},{"id":"P_AJ","n":"Andy Jassy","t":"person","c":"US","d":"Amazon CEO"},{"id":"C_AVGO","n":"Broadcom","t":"company","c":"US","d":"Custom AI chips & networking"},{"id":"U_OSU","n":"Oregon State University","t":"institution","c":"US","d":""},{"id":"P_DS","n":"David Sacks","t":"person","c":"US","d":"PCAST co-chair (former AI & crypto czar)"},{"id":"C_CRUSOE","n":"Crusoe","t":"company","c":"US","d":"Neocloud (private)"},{"id":"C_WIS","n":"Wistron","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"C_AMD","n":"AMD","t":"company","c":"US","d":"GPU & CPU"},{"id":"EV_GENEVA","n":"US-China Geneva trade talks","t":"event","c":"","d":"Event"},{"id":"G_WH","n":"White House","t":"government","c":"US","d":""},{"id":"C_ORCL","n":"Oracle","t":"company","c":"US","d":"Cloud (OCI); Stargate"},{"id":"F_LT","n":"Huang Living Trust","t":"foundation","c":"US","d":"Holds about 530m NVIDIA shares (est.)"},{"id":"G_TRE","n":"U.S. Treasury Department","t":"government","c":"US","d":"Economic security & sanctions"},{"id":"G_MOFCOM","n":"PRC Commerce Ministry","t":"government","c":"CN","d":""},{"id":"P_GH","n":"Glenn Hutchins","t":"person","c":"US","d":"CoreWeave lead independent director; Silver Lake co-founder"},{"id":"C_NC","n":"NCSOFT","t":"company","c":"KR","d":"Games"},{"id":"P_CL","n":"Chris Lehane","t":"person","c":"US","d":"OpenAI chief global affairs officer"},{"id":"C_ARM","n":"Arm","t":"company","c":"UK","d":"Held Sep 2025; sold Q4 2025"},{"id":"C_HUMAIN","n":"Humain","t":"company","c":"SA","d":"Saudi PIF-owned AI company"},{"id":"P_JGZ","n":"James Goetz","t":"person","c":"US","d":"Intel director; Sequoia partner"},{"id":"P_EM","n":"Elon Musk","t":"person","c":"US","d":"CEO of xAI, SpaceX, Tesla"},{"id":"C_BLK","n":"BlackRock","t":"company","c":"US","d":"Asset manager (7.43% of NVIDIA)"},{"id":"P_LJM","n":"Lee Jae-myung","t":"person","c":"KR","d":"South Korean president"},{"id":"P_LH","n":"Lori Huang","t":"person","c":"US","d":"Spouse; Huang Foundation president; living-trust co-trustee"},{"id":"P_SN","n":"Satya Nadella","t":"person","c":"US","d":"Microsoft CEO"},{"id":"P_MK","n":"Michael Kratsios","t":"person","c":"US","d":"White House OSTP director; PCAST co-chair"},{"id":"C_CW","n":"CoreWeave","t":"company","c":"US","d":"Neocloud"},{"id":"P_AH","n":"Alice Huang (Huang Le)","t":"person","c":"CN","d":"Former Megaspeed executive; not a family member"},{"id":"P_TML","n":"Mark Liu","t":"person","c":"TW","d":"Micron director; former TSMC executive chairman"},{"id":"C_SNPS","n":"Synopsys","t":"company","c":"US","d":"EDA"},{"id":"P_SH","n":"Spencer Huang","t":"person","c":"US","d":"Son; NVIDIA director, robotics software product management"},{"id":"C_SEQ","n":"Sequoia Capital","t":"company","c":"US","d":"Venture capital"},{"id":"C_MU","n":"Micron","t":"company","c":"US","d":"HBM"},{"id":"C_ANT","n":"Anthropic","t":"company","c":"US","d":"AI models"},{"id":"C_INTC","n":"Intel","t":"company","c":"US","d":"CPU & foundry"},{"id":"P_JF","n":"Jeff Fisher","t":"person","c":"US","d":"NVIDIA senior vice president (joined 1994)","aug":1},{"id":"P_IB","n":"Ian Buck","t":"person","c":"US","d":"NVIDIA executive (named by Reuters as possible successor)","aug":1},{"id":"P_KJS","n":"Kim Ju-seon","t":"person","c":"KR","d":"SK hynix executive, AI infrastructure","aug":1}],"edges":[{"s":"C_NV","t":"C_TSMC","l":["supply"],"g":"B"},{"s":"C_FOX","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_QUA","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_WIS","l":["supply"],"g":"B"},{"s":"C_ASE","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_MU","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SKH","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SEC","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SK","l":["supply"],"g":"B"},{"s":"C_HMG","t":"C_NV","l":["supply","investment"],"g":"B"},{"s":"C_NAV","t":"C_NV","l":["supply","investment"],"g":"B"},{"s":"C_NV","t":"G_MSIT","l":["supply","policy"],"g":"B"},{"s":"C_NV","t":"C_SKT","l":["supply"],"g":"B"},{"s":"C_REB","t":"C_SKT","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_REB","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_OAI","l":["customer","investment"],"g":"B"},{"s":"C_ANT","t":"C_NV","l":["customer","investment"],"g":"B"},{"s":"C_ANT","t":"C_MSFT","l":["customer","investment"],"g":"B"},{"s":"C_CW","t":"C_NV","l":["customer","investment"],"g":"A"},{"s":"C_NEB","t":"C_NV","l":["customer","investment"],"g":"A"},{"s":"C_NV","t":"C_SPX","l":["customer","investment"],"g":"A"},{"s":"C_CW","t":"C_MAG","l":["investment"],"g":"B"},{"s":"C_INTC","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_NV","t":"C_SNPS","l":["investment"],"g":"A"},{"s":"C_NOK","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_COH","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_BRK","t":"C_NAV","l":["investment"],"g":"B"},{"s":"P_JH","t":"P_TR","l":["policy"],"g":"B"},{"s":"C_NV","t":"G_DOC","l":["policy"],"g":"B"},{"s":"G_WH","t":"P_TR","l":["policy"],"g":"B"},{"s":"G_DOC","t":"G_WH","l":["policy"],"g":"A"},{"s":"C_NV","t":"G_TNM","l":["policy"],"g":"B"},{"s":"P_HLF","t":"P_JH","l":["policy"],"g":"B"},{"s":"P_JH","t":"P_WWT","l":["policy"],"g":"B"},{"s":"G_CNSC","t":"P_HLF","l":["policy"],"g":"B"},{"s":"G_MOFCOM","t":"P_WWT","l":["policy"],"g":"B"},{"s":"C_HMG","t":"G_MSIT","l":["policy"],"g":"B"},{"s":"C_MEGA","t":"G_SGPF","l":["policy"],"g":"B"},{"s":"C_NV","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"P_HJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_CM","l":["people"],"g":"A"},{"s":"C_NV","t":"P_MH","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SH","l":["people"],"g":"A"},{"s":"P_JH","t":"P_LH","l":["people"],"g":"A"},{"s":"P_JH","t":"P_MH","l":["people"],"g":"B"},{"s":"P_JH","t":"P_SH","l":["people"],"g":"B"},{"s":"P_JH","t":"P_LS","l":["people"],"g":"B"},{"s":"C_AMD","t":"P_LS","l":["people"],"g":"A"},{"s":"F_HF","t":"P_LH","l":["people"],"g":"A"},{"s":"F_HF","t":"P_JH","l":["people"],"g":"A"},{"s":"F_LT","t":"P_LH","l":["people"],"g":"A"},{"s":"F_LT","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"F_LT","l":["people"],"g":"A"},{"s":"C_NV","t":"F_HF","l":["people"],"g":"A"},{"s":"P_AH","t":"P_JH","l":["people"],"g":"B"},{"s":"C_OAI","t":"P_SA","l":["people"],"g":"B"},{"s":"C_SEC","t":"P_LJY","l":["people"],"g":"B"},{"s":"C_SEC","t":"P_JYH","l":["people"],"g":"B"},{"s":"C_SK","t":"P_CTW","l":["people"],"g":"B"},{"s":"C_SK","t":"C_SKH","l":["people"],"g":"B"},{"s":"C_SK","t":"C_SKT","l":["people"],"g":"B"},{"s":"C_HMG","t":"P_CES","l":["people"],"g":"B"},{"s":"C_LG","t":"P_KKM","l":["people"],"g":"A"},{"s":"C_DOO","t":"P_PJW","l":["people"],"g":"A"},{"s":"C_NAV","t":"P_LHJ","l":["people"],"g":"A"},{"s":"C_NAV","t":"P_CSY","l":["people"],"g":"B"},{"s":"C_NC","t":"P_KTJ","l":["people"],"g":"A"},{"s":"C_SEC","t":"C_SEM","l":["people"],"g":"B"},{"s":"P_JH","t":"U_SNU","l":["meeting"],"g":"B"},{"s":"F_T12","t":"P_LH","l":["people"],"g":"A"},{"s":"F_T12","t":"P_JH","l":["people"],"g":"A"},{"s":"F_TRT","t":"P_LH","l":["people"],"g":"A"},{"s":"F_TRT","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"F_T12","l":["people"],"g":"A"},{"s":"C_NV","t":"F_TRT","l":["people"],"g":"A"},{"s":"F_LT","t":"F_TARG","l":["people"],"g":"A"},{"s":"C_NV","t":"F_TARG","l":["people"],"g":"A"},{"s":"C_NV","t":"G_NVPAC","l":["policy"],"g":"A"},{"s":"G_NVPAC","t":"P_MH","l":["policy"],"g":"A"},{"s":"C_GEN","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_LG","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_DOO","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NC","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_MSFT","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_META","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_AMZN","t":"C_NV","l":["customer","supply"],"g":"B"},{"s":"C_NV","t":"C_ORCL","l":["customer"],"g":"B"},{"s":"C_HUMAIN","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_HUMAIN","t":"C_SPX","l":["customer"],"g":"B"},{"s":"C_OAI","t":"C_ORCL","l":["customer"],"g":"B"},{"s":"C_MSFT","t":"C_OAI","l":["customer","investment"],"g":"B"},{"s":"C_AMZN","t":"C_OAI","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_OAI","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_META","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_MSFT","l":["customer"],"g":"B"},{"s":"C_ANT","t":"C_GOOG","l":["customer"],"g":"B"},{"s":"C_MSFT","t":"P_SN","l":["people"],"g":"A"},{"s":"C_META","t":"P_MZ","l":["people"],"g":"B"},{"s":"C_AMZN","t":"P_AJ","l":["people"],"g":"B"},{"s":"C_GOOG","t":"P_SP","l":["people"],"g":"B"},{"s":"C_ORCL","t":"P_LE","l":["people"],"g":"B"},{"s":"C_SPX","t":"P_EM","l":["people"],"g":"B"},{"s":"P_JH","t":"P_MZ","l":["meeting"],"g":"B"},{"s":"P_EM","t":"P_JH","l":["meeting"],"g":"B"},{"s":"P_JH","t":"U_OSU","l":["academia"],"g":"A"},{"s":"P_LH","t":"U_OSU","l":["academia"],"g":"A"},{"s":"P_JH","t":"U_STAN","l":["academia"],"g":"A"},{"s":"F_HF","t":"U_OSU","l":["philanthropy"],"g":"A"},{"s":"F_HF","t":"U_STAN","l":["philanthropy"],"g":"B"},{"s":"C_CW","t":"F_HF","l":["philanthropy"],"g":"A"},{"s":"C_ANT","t":"P_DA","l":["people"],"g":"B"},{"s":"G_DOC","t":"P_HL","l":["policy"],"g":"A"},{"s":"G_STATE","t":"P_MR","l":["policy"],"g":"B"},{"s":"G_WH","t":"P_MR","l":["policy"],"g":"B"},{"s":"P_MR","t":"P_TR","l":["policy"],"g":"B"},{"s":"P_HL","t":"P_MR","l":["policy"],"g":"B"},{"s":"EV_APEC","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_APEC","t":"P_LJM","l":["meeting"],"g":"B"},{"s":"EV_APEC","t":"P_CTW","l":["meeting"],"g":"B"},{"s":"EV_APEC","t":"P_LHJ","l":["meeting"],"g":"B"},{"s":"EV_APEC","t":"P_LJY","l":["meeting"],"g":"B"},{"s":"EV_APEC","t":"P_CES","l":["meeting"],"g":"B"},{"s":"EV_CHICKEN","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_CHICKEN","t":"P_LJY","l":["meeting"],"g":"B"},{"s":"EV_CHICKEN","t":"P_CES","l":["meeting"],"g":"B"},{"s":"EV_HONGDAE","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_HONGDAE","t":"P_KKM","l":["meeting"],"g":"B"},{"s":"EV_HONGDAE","t":"P_CTW","l":["meeting"],"g":"B"},{"s":"EV_HONGDAE","t":"P_LHJ","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_SA","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_LJY","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_CES","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_LHJ","l":["meeting"],"g":"B"},{"s":"EV_SUMMIT","t":"P_MH","l":["meeting"],"g":"B"},{"s":"EV_NVHQ","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_NVHQ","t":"P_CSY","l":["meeting"],"g":"B"},{"s":"EV_NVHQ","t":"P_LHJ","l":["meeting"],"g":"B"},{"s":"EV_NOBU","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_NOBU","t":"P_EM","l":["meeting"],"g":"B"},{"s":"EV_NOBU","t":"P_LE","l":["meeting"],"g":"B"},{"s":"EV_STARGATE","t":"P_LE","l":["meeting"],"g":"B"},{"s":"EV_STARGATE","t":"P_SA","l":["meeting"],"g":"B"},{"s":"EV_STARGATE","t":"P_TR","l":["meeting"],"g":"B"},{"s":"EV_MSPART","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_MSPART","t":"P_DA","l":["meeting"],"g":"B"},{"s":"EV_MSPART","t":"P_SN","l":["meeting"],"g":"B"},{"s":"C_NV","t":"P_CK","l":["people"],"g":"A"},{"s":"C_NV","t":"P_DSQ","l":["people"],"g":"A"},{"s":"G_TRE","t":"P_SB","l":["policy"],"g":"B"},{"s":"G_TRE","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_STATE","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_BIS","t":"G_DOC","l":["policy"],"g":"A"},{"s":"G_BIS","t":"P_JK","l":["policy"],"g":"A"},{"s":"G_USTR","t":"P_JG","l":["policy"],"g":"B"},{"s":"G_USTR","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"P_MK","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"G_PCAST","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_MK","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_DS","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_JH","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_LS","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_LE","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_MZ","l":["policy"],"g":"A"},{"s":"C_NV","t":"G_BIS","l":["policy"],"g":"A"},{"s":"EV_GENEVA","t":"P_SB","l":["meeting"],"g":"B"},{"s":"EV_GENEVA","t":"P_JG","l":["meeting"],"g":"B"},{"s":"EV_GENEVA","t":"P_HLF","l":["meeting"],"g":"B"},{"s":"EV_LONDON","t":"P_SB","l":["meeting"],"g":"B"},{"s":"EV_LONDON","t":"P_HL","l":["meeting"],"g":"B"},{"s":"EV_LONDON","t":"P_JG","l":["meeting"],"g":"B"},{"s":"EV_LONDON","t":"P_HLF","l":["meeting"],"g":"B"},{"s":"P_HLF","t":"P_SB","l":["policy"],"g":"B"},{"s":"P_JG","t":"P_WWT","l":["policy"],"g":"B"},{"s":"EV_BEIJING","t":"P_TR","l":["meeting"],"g":"B"},{"s":"EV_BEIJING","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_BEIJING","t":"P_EM","l":["meeting"],"g":"B"},{"s":"EV_BEIJING","t":"P_MR","l":["meeting"],"g":"B"},{"s":"C_ANT","t":"P_TC","l":["people"],"g":"B"},{"s":"C_OAI","t":"P_CL","l":["people"],"g":"B"},{"s":"C_GDM","t":"P_DH","l":["people"],"g":"B"},{"s":"C_GDM","t":"P_KK","l":["people"],"g":"B"},{"s":"C_GDM","t":"C_GOOG","l":["people"],"g":"B"},{"s":"C_SBG","t":"P_MS","l":["people"],"g":"B"},{"s":"C_ARM","t":"C_SBG","l":["investment"],"g":"B"},{"s":"C_OAI","t":"C_SBG","l":["investment"],"g":"B"},{"s":"C_SBG","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_OAI","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_ORCL","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_MGX","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_NV","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_MSFT","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_ARM","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"PJ_STAR","t":"P_MS","l":["people"],"g":"A"},{"s":"EV_STARGATE","t":"P_MS","l":["meeting"],"g":"B"},{"s":"P_JH","t":"P_MS","l":["meeting"],"g":"B"},{"s":"C_TSMC","t":"P_CCW","l":["people"],"g":"B"},{"s":"P_CCW","t":"P_JH","l":["meeting"],"g":"B"},{"s":"P_CCW","t":"P_CTW","l":["meeting"],"g":"B"},{"s":"C_MU","t":"P_SM","l":["people"],"g":"B"},{"s":"C_AVGO","t":"P_HT","l":["people"],"g":"A"},{"s":"C_META","t":"P_HT","l":["people"],"g":"A"},{"s":"C_AVGO","t":"C_OAI","l":["supply"],"g":"A"},{"s":"C_SKH","t":"P_KNJ","l":["people"],"g":"A"},{"s":"EV_COMPUTEX","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_COMPUTEX","t":"P_CTW","l":["meeting"],"g":"B"},{"s":"EV_COMPUTEX","t":"P_KNJ","l":["meeting"],"g":"B"},{"s":"C_HF","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_NV","t":"C_SBE","l":["investment"],"g":"A"},{"s":"C_OAI","t":"C_SBE","l":["customer"],"g":"A"},{"s":"C_NV","t":"G_SAMR","l":["policy"],"g":"A"},{"s":"G_CNSC","t":"G_SAMR","l":["policy"],"g":"B"},{"s":"C_NV","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_ALI","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_BYTE","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_NV","t":"P_TR","l":["policy"],"g":"B"},{"s":"C_BYTE","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_ALI","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_NV","t":"C_TENC","l":["customer"],"g":"B"},{"s":"P_JH","t":"P_MC","l":["people"],"g":"B"},{"s":"C_TSMC","t":"P_MC","l":["people"],"g":"B"},{"s":"P_JH","t":"P_LBT","l":["people"],"g":"B"},{"s":"C_INTC","t":"P_LBT","l":["people"],"g":"A"},{"s":"EV_KKANBU2","t":"P_JH","l":["meeting"],"g":"B"},{"s":"EV_KKANBU2","t":"P_LH","l":["meeting"],"g":"B"},{"s":"EV_KKANBU2","t":"P_MH","l":["meeting"],"g":"B"},{"s":"EV_KKANBU2","t":"P_CTW","l":["meeting"],"g":"B"},{"s":"EV_KKANBU2","t":"P_KNJ","l":["meeting"],"g":"B"},{"s":"C_LAMBDA","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_NSCALE","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_CRUSOE","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_FN","t":"C_NV","l":["supply"],"g":"A"},{"s":"C_CW","t":"P_MI","l":["people"],"g":"A"},{"s":"C_CW","t":"P_GH","l":["people"],"g":"A"},{"s":"O_BROOK","t":"P_GH","l":["people"],"g":"A"},{"s":"O_BROOK","t":"P_SNJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SNJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SCN","l":["people"],"g":"A"},{"s":"C_NV","t":"P_JOD","l":["people"],"g":"A"},{"s":"C_MU","t":"P_TML","l":["people"],"g":"A"},{"s":"C_TSMC","t":"P_TML","l":["people"],"g":"A"},{"s":"C_MU","t":"P_RS","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_RS","l":["people"],"g":"A"},{"s":"C_BLK","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_INTC","t":"P_BN","l":["people"],"g":"A"},{"s":"C_BLK","t":"P_BN","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_JGZ","l":["people"],"g":"A"},{"s":"C_SEQ","t":"P_JGZ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_MST","l":["people"],"g":"A"},{"s":"C_SEQ","t":"P_MST","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_MST","l":["people"],"g":"A"},{"s":"C_NV","t":"P_ABS","l":["people"],"g":"A"},{"s":"C_SNPS","t":"P_ABS","l":["people"],"g":"A"},{"s":"C_SNPS","t":"P_HJ","l":["people"],"g":"A"},{"s":"P_JF","t":"C_NV","l":["people"],"g":"B","aug":1},{"s":"P_IB","t":"C_NV","l":["people"],"g":"B","aug":1},{"s":"P_JF","t":"P_CTW","l":["meeting"],"g":"B","aug":1},{"s":"P_JF","t":"P_KNJ","l":["meeting"],"g":"B","aug":1},{"s":"P_JF","t":"P_KJS","l":["meeting"],"g":"B","aug":1},{"s":"P_KJS","t":"C_SKH","l":["people"],"g":"B","aug":1},{"s":"P_JF","t":"P_JYH","l":["meeting"],"g":"B","aug":1}]};
+const DATA_ORG_AUG={"nodes":[{"id":"C_ASE","n":"ASE","t":"company","c":"TW","d":"Packaging & test"},{"id":"C_SEM","n":"Samsung Electro-Mechanics","t":"company","c":"KR","d":"Package substrates"},{"id":"P_MH","n":"Madison Huang","t":"person","c":"US","d":"Daughter; NVIDIA senior director, physical AI product marketing"},{"id":"P_TC","n":"Tino Cuéllar","t":"person","c":"US","d":"Anthropic chief global affairs officer"},{"id":"C_QUA","n":"Quanta","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"G_SAMR","n":"China SAMR","t":"government","c":"CN","d":"State Administration for Market Regulation (antitrust)"},{"id":"U_STAN","n":"Stanford University","t":"institution","c":"US","d":""},{"id":"C_COH","n":"Coherent","t":"company","c":"US","d":"Optical communications"},{"id":"F_HF","n":"Jen-Hsun & Lori Huang Foundation","t":"foundation","c":"US","d":"Assets about $9.2bn (end-2024)"},{"id":"P_JYH","n":"Jun Young-hyun","t":"person","c":"KR","d":"Samsung Electronics vice chairman, DS division head"},{"id":"C_MGX","n":"MGX","t":"company","c":"AE","d":"AI investment"},{"id":"C_FN","n":"Fabrinet","t":"company","c":"TH","d":"Optical component contract manufacturing"},{"id":"C_MSFT","n":"Microsoft · Satya Nadella","t":"company","c":"US","d":"Cloud"},{"id":"C_BYTE","n":"ByteDance","t":"company","c":"CN","d":"Internet & AI"},{"id":"P_CM","n":"Chris Malachowsky","t":"person","c":"US","d":"NVIDIA co-founder"},{"id":"P_HLF","n":"He Lifeng","t":"person","c":"CN","d":"Chinese vice premier"},{"id":"P_SCN","n":"Stephen C. Neal","t":"person","c":"US","d":"NVIDIA director; oversight committee member"},{"id":"O_BROOK","n":"Brookings Institution","t":"institution","c":"US","d":"Think tank"},{"id":"C_GEN","n":"Generate Biomedicines","t":"company","c":"US","d":"New in 2026"},{"id":"C_GOOG","n":"Alphabet (Google) · Sundar Pichai","t":"company","c":"US","d":"Cloud; in-house TPU"},{"id":"P_WWT","n":"Wang Wentao","t":"person","c":"CN","d":"Chinese commerce minister"},{"id":"C_SK","n":"SK Group · Chey Tae-won","t":"company","c":"KR","d":"Holding company"},{"id":"G_MSIT","n":"Korea Ministry of Science and ICT","t":"government","c":"KR","d":""},{"id":"C_NEB","n":"Nebius","t":"company","c":"NL","d":"Neocloud"},{"id":"P_CK","n":"Colette Kress","t":"person","c":"US","d":"NVIDIA CFO & interim CEO"},{"id":"C_NAV","n":"NAVER · Lee Hae-jin · Choi Soo-yeon","t":"company","c":"KR","d":"Cloud & AI factory"},{"id":"P_DSQ","n":"Debora Shoquist","t":"person","c":"US","d":"NVIDIA EVP, operations"},{"id":"C_NSCALE","n":"Nscale","t":"company","c":"GB","d":"Neocloud (private)"},{"id":"P_TR","n":"Donald Trump","t":"person","c":"US","d":"U.S. president"},{"id":"G_STATE","n":"U.S. State Department","t":"government","c":"US","d":"Diplomacy & export-control talks"},{"id":"G_OSTP","n":"White House OSTP","t":"government","c":"US","d":"Science & technology policy"},{"id":"F_T12","n":"Huang 2012 Irrevocable Trust","t":"foundation","c":"US","d":"Co-trustees: the couple"},{"id":"C_TENC","n":"Tencent","t":"company","c":"CN","d":"Internet & cloud"},{"id":"C_TSMC","n":"TSMC · C.C. Wei · Morris Chang","t":"company","c":"TW","d":"Foundry & CoWoS"},{"id":"G_BIS","n":"U.S. Commerce BIS","t":"government","c":"US","d":"Bureau of Industry and Security (export controls)"},{"id":"G_TNM","n":"Trust for the National Mall","t":"foundation","c":"US","d":"Nonprofit raising funds for White House ballroom"},{"id":"C_SKH","n":"SK hynix · Kwak Noh-jung","t":"company","c":"KR","d":"HBM"},{"id":"C_GDM","n":"Google DeepMind · Demis Hassabis","t":"company","c":"GB","d":"AI research (Alphabet)"},{"id":"P_SNJ","n":"Suzanne Nora Johnson","t":"person","c":"US","d":"NVIDIA director; chair, national security & export-control oversight committee"},{"id":"F_TRT","n":"Huang Irrevocable Remainder Trust","t":"foundation","c":"US","d":"Set up Feb 19, 2016; co-trustees: the couple"},{"id":"P_SB","n":"Scott Bessent","t":"person","c":"US","d":"U.S. Treasury secretary"},{"id":"PJ_STAR","n":"Stargate","t":"project","c":"US","d":"AI infrastructure joint venture"},{"id":"C_BRK","n":"Brookfield","t":"company","c":"CA","d":"Infrastructure investment"},{"id":"P_JH","n":"Jensen Huang","t":"person","c":"US/TW","d":"NVIDIA co-founder & former CEO (resigned Nov 12, 2026)"},{"id":"C_SKT","n":"SK Telecom","t":"company","c":"KR","d":"AI cloud & data centers"},{"id":"G_USTR","n":"USTR","t":"government","c":"US","d":"Trade"},{"id":"P_MR","n":"Marco Rubio","t":"person","c":"US","d":"U.S. secretary of state & national security adviser"},{"id":"C_SBG","n":"SoftBank Group · Masayoshi Son","t":"company","c":"JP","d":"Investment holding"},{"id":"C_OAI","n":"OpenAI · Sam Altman","t":"company","c":"US","d":"AI models"},{"id":"P_BN","n":"Barbara Novick","t":"person","c":"US","d":"Intel director; BlackRock co-founder"},{"id":"C_SEC","n":"Samsung Electronics · Lee Jae-yong","t":"company","c":"KR","d":"Memory & foundry"},{"id":"G_CNSC","n":"PRC State Council","t":"government","c":"CN","d":""},{"id":"C_LG","n":"LG Group · Koo Kwang-mo","t":"company","c":"KR","d":"AI factory & robotics"},{"id":"C_SBE","n":"SB Energy","t":"company","c":"US","d":"Energy & data-center sites"},{"id":"C_NV","n":"NVIDIA","t":"company","c":"US","d":"GPU & AI computing"},{"id":"C_FOX","n":"Foxconn","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"P_JK","n":"Jeffrey Kessler","t":"person","c":"US","d":"Commerce under secretary for industry & security (BIS)"},{"id":"G_SGPF","n":"Singapore Police / MHA","t":"government","c":"SG","d":""},{"id":"U_SNU","n":"Seoul National University","t":"institution","c":"KR","d":""},{"id":"C_LAMBDA","n":"Lambda","t":"company","c":"US","d":"Neocloud (private)"},{"id":"F_TARG","n":"TARG LLCs (4)","t":"foundation","c":"US","d":"Living trust is sole member"},{"id":"C_SPX","n":"SpaceX (xAI) · Elon Musk","t":"company","c":"US","d":"Absorbed xAI"},{"id":"C_MAG","n":"Magnetar Capital","t":"company","c":"US","d":"Hedge fund (CoreWeave top shareholder)"},{"id":"G_DOC","n":"U.S. Commerce Department","t":"government","c":"US","d":"Export controls"},{"id":"G_CAC","n":"Cyberspace Administration of China","t":"government","c":"CN","d":"Internet & data regulation"},{"id":"C_ALI","n":"Alibaba","t":"company","c":"CN","d":"E-commerce & cloud"},{"id":"C_REB","n":"Rebellions","t":"company","c":"KR","d":"NPU"},{"id":"P_RS","n":"Robert Swan","t":"person","c":"US","d":"Micron director; former Intel CEO"},{"id":"C_DOO","n":"Doosan Group · Park Jeong-won","t":"company","c":"KR","d":"Robotics & energy"},{"id":"C_MEGA","n":"Megaspeed","t":"company","c":"SG","d":"GPU cloud"},{"id":"C_META","n":"Meta · Mark Zuckerberg","t":"company","c":"US","d":"Social & AI models"},{"id":"P_ABS","n":"A. Brooke Seawell","t":"person","c":"US","d":"NVIDIA director; audit committee chair"},{"id":"G_NVPAC","n":"NVIDIA Employees PAC","t":"foundation","c":"US","d":"FEC-registered Aug 27, 2026"},{"id":"C_HF","n":"Hugging Face","t":"company","c":"US","d":"Open-source AI model hub"},{"id":"G_PCAST","n":"PCAST","t":"institution","c":"US","d":"Presidential advisory council"},{"id":"P_JOD","n":"John O. Dabiri","t":"person","c":"US","d":"NVIDIA director; oversight committee member"},{"id":"P_MST","n":"Mark Stevens","t":"person","c":"US","d":"NVIDIA director"},{"id":"C_HMG","n":"Hyundai Motor Group · Chung Eui-sun","t":"company","c":"KR","d":"Autonomous driving & robotics"},{"id":"P_KK","n":"Koray Kavukcuoglu","t":"person","c":"US","d":"Google DeepMind SVP; Google chief AI architect"},{"id":"P_HJ","n":"Harvey C. Jones","t":"person","c":"US","d":"NVIDIA first board chairman"},{"id":"P_JG","n":"Jamieson Greer","t":"person","c":"US","d":"U.S. trade representative"},{"id":"C_NOK","n":"Nokia","t":"company","c":"FI","d":"Telecom equipment"},{"id":"C_AMZN","n":"Amazon (AWS) · Andy Jassy","t":"company","c":"US","d":"Cloud; in-house Trainium"},{"id":"P_HL","n":"Howard Lutnick","t":"person","c":"US","d":"U.S. commerce secretary"},{"id":"C_AVGO","n":"Broadcom · Hock Tan","t":"company","c":"US","d":"Custom AI chips & networking"},{"id":"U_OSU","n":"Oregon State University","t":"institution","c":"US","d":""},{"id":"P_DS","n":"David Sacks","t":"person","c":"US","d":"PCAST co-chair (former AI & crypto czar)"},{"id":"C_CRUSOE","n":"Crusoe","t":"company","c":"US","d":"Neocloud (private)"},{"id":"C_WIS","n":"Wistron","t":"company","c":"TW","d":"ODM rack assembly"},{"id":"C_AMD","n":"AMD · Lisa Su","t":"company","c":"US","d":"GPU & CPU"},{"id":"G_WH","n":"White House","t":"government","c":"US","d":""},{"id":"C_ORCL","n":"Oracle · Larry Ellison","t":"company","c":"US","d":"Cloud (OCI); Stargate"},{"id":"F_LT","n":"Huang Living Trust","t":"foundation","c":"US","d":"Holds about 530m NVIDIA shares (est.)"},{"id":"G_TRE","n":"U.S. Treasury Department","t":"government","c":"US","d":"Economic security & sanctions"},{"id":"G_MOFCOM","n":"PRC Commerce Ministry","t":"government","c":"CN","d":""},{"id":"P_GH","n":"Glenn Hutchins","t":"person","c":"US","d":"CoreWeave lead independent director; Silver Lake co-founder"},{"id":"C_NC","n":"NCSOFT · Kim Taek-jin","t":"company","c":"KR","d":"Games"},{"id":"P_CL","n":"Chris Lehane","t":"person","c":"US","d":"OpenAI chief global affairs officer"},{"id":"C_ARM","n":"Arm","t":"company","c":"UK","d":"Held Sep 2025; sold Q4 2025"},{"id":"C_HUMAIN","n":"Humain","t":"company","c":"SA","d":"Saudi PIF-owned AI company"},{"id":"P_JGZ","n":"James Goetz","t":"person","c":"US","d":"Intel director; Sequoia partner"},{"id":"C_BLK","n":"BlackRock","t":"company","c":"US","d":"Asset manager (7.43% of NVIDIA)"},{"id":"P_LJM","n":"Lee Jae-myung","t":"person","c":"KR","d":"South Korean president"},{"id":"P_LH","n":"Lori Huang","t":"person","c":"US","d":"Spouse; Huang Foundation president; living-trust co-trustee"},{"id":"P_MK","n":"Michael Kratsios","t":"person","c":"US","d":"White House OSTP director; PCAST co-chair"},{"id":"C_CW","n":"CoreWeave · Michael Intrator","t":"company","c":"US","d":"Neocloud"},{"id":"P_AH","n":"Alice Huang (Huang Le)","t":"person","c":"CN","d":"Former Megaspeed executive; not a family member"},{"id":"P_TML","n":"Mark Liu","t":"person","c":"TW","d":"Micron director; former TSMC executive chairman"},{"id":"C_SNPS","n":"Synopsys","t":"company","c":"US","d":"EDA"},{"id":"P_SH","n":"Spencer Huang","t":"person","c":"US","d":"Son; NVIDIA director, robotics software product management"},{"id":"C_SEQ","n":"Sequoia Capital","t":"company","c":"US","d":"Venture capital"},{"id":"C_MU","n":"Micron · Sanjay Mehrotra","t":"company","c":"US","d":"HBM"},{"id":"C_ANT","n":"Anthropic · Dario Amodei","t":"company","c":"US","d":"AI models"},{"id":"C_INTC","n":"Intel · Lip-Bu Tan","t":"company","c":"US","d":"CPU & foundry"},{"id":"P_JF","n":"Jeff Fisher","t":"person","c":"US","d":"NVIDIA senior vice president (joined 1994)","aug":1},{"id":"P_IB","n":"Ian Buck","t":"person","c":"US","d":"NVIDIA executive (named by Reuters as possible successor)","aug":1},{"id":"P_KJS","n":"Kim Ju-seon","t":"person","c":"KR","d":"SK hynix executive, AI infrastructure","aug":1}],"edges":[{"s":"C_NV","t":"C_TSMC","l":["supply"],"g":"B"},{"s":"C_FOX","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_QUA","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_WIS","l":["supply"],"g":"B"},{"s":"C_ASE","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_MU","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SKH","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SEC","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_SK","l":["supply"],"g":"B"},{"s":"C_HMG","t":"C_NV","l":["supply","investment"],"g":"B"},{"s":"C_NAV","t":"C_NV","l":["supply","investment"],"g":"B"},{"s":"C_NV","t":"G_MSIT","l":["supply","policy"],"g":"B"},{"s":"C_NV","t":"C_SKT","l":["supply"],"g":"B"},{"s":"C_REB","t":"C_SKT","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_REB","l":["supply"],"g":"B"},{"s":"C_NV","t":"C_OAI","l":["customer","investment"],"g":"B"},{"s":"C_ANT","t":"C_NV","l":["customer","investment"],"g":"B"},{"s":"C_ANT","t":"C_MSFT","l":["customer","investment","meeting"],"g":"B"},{"s":"C_CW","t":"C_NV","l":["customer","investment"],"g":"A"},{"s":"C_NEB","t":"C_NV","l":["customer","investment"],"g":"A"},{"s":"C_NV","t":"C_SPX","l":["customer","investment"],"g":"A"},{"s":"C_CW","t":"C_MAG","l":["investment"],"g":"B"},{"s":"C_INTC","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_NV","t":"C_SNPS","l":["investment"],"g":"A"},{"s":"C_NOK","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_COH","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_BRK","t":"C_NAV","l":["investment"],"g":"B"},{"s":"P_JH","t":"P_TR","l":["policy","meeting"],"g":"B"},{"s":"C_NV","t":"G_DOC","l":["policy"],"g":"B"},{"s":"G_WH","t":"P_TR","l":["policy"],"g":"B"},{"s":"G_DOC","t":"G_WH","l":["policy"],"g":"A"},{"s":"C_NV","t":"G_TNM","l":["policy"],"g":"B"},{"s":"P_HLF","t":"P_JH","l":["policy"],"g":"B"},{"s":"P_JH","t":"P_WWT","l":["policy"],"g":"B"},{"s":"G_CNSC","t":"P_HLF","l":["policy"],"g":"B"},{"s":"G_MOFCOM","t":"P_WWT","l":["policy"],"g":"B"},{"s":"C_HMG","t":"G_MSIT","l":["policy"],"g":"B"},{"s":"C_MEGA","t":"G_SGPF","l":["policy"],"g":"B"},{"s":"C_NV","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"P_HJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_CM","l":["people"],"g":"A"},{"s":"C_NV","t":"P_MH","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SH","l":["people"],"g":"A"},{"s":"P_JH","t":"P_LH","l":["people","meeting"],"g":"A"},{"s":"P_JH","t":"P_MH","l":["people","meeting"],"g":"B"},{"s":"P_JH","t":"P_SH","l":["people"],"g":"B"},{"s":"P_JH","t":"C_AMD","l":["people"],"g":"B"},{"s":"F_HF","t":"P_LH","l":["people"],"g":"A"},{"s":"F_HF","t":"P_JH","l":["people"],"g":"A"},{"s":"F_LT","t":"P_LH","l":["people"],"g":"A"},{"s":"F_LT","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"F_LT","l":["people"],"g":"A"},{"s":"C_NV","t":"F_HF","l":["people"],"g":"A"},{"s":"P_AH","t":"P_JH","l":["people"],"g":"B"},{"s":"C_SEC","t":"P_JYH","l":["people"],"g":"B"},{"s":"C_SK","t":"C_SKH","l":["people","meeting"],"g":"B"},{"s":"C_SK","t":"C_SKT","l":["people"],"g":"B"},{"s":"C_SEC","t":"C_SEM","l":["people"],"g":"B"},{"s":"P_JH","t":"U_SNU","l":["meeting"],"g":"B"},{"s":"F_T12","t":"P_LH","l":["people"],"g":"A"},{"s":"F_T12","t":"P_JH","l":["people"],"g":"A"},{"s":"F_TRT","t":"P_LH","l":["people"],"g":"A"},{"s":"F_TRT","t":"P_JH","l":["people"],"g":"A"},{"s":"C_NV","t":"F_T12","l":["people"],"g":"A"},{"s":"C_NV","t":"F_TRT","l":["people"],"g":"A"},{"s":"F_LT","t":"F_TARG","l":["people"],"g":"A"},{"s":"C_NV","t":"F_TARG","l":["people"],"g":"A"},{"s":"C_NV","t":"G_NVPAC","l":["policy"],"g":"A"},{"s":"G_NVPAC","t":"P_MH","l":["policy"],"g":"A"},{"s":"C_GEN","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_LG","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_DOO","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_NC","t":"C_NV","l":["supply"],"g":"B"},{"s":"C_MSFT","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_META","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_AMZN","t":"C_NV","l":["customer","supply"],"g":"B"},{"s":"C_NV","t":"C_ORCL","l":["customer"],"g":"B"},{"s":"C_HUMAIN","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_HUMAIN","t":"C_SPX","l":["customer"],"g":"B"},{"s":"C_OAI","t":"C_ORCL","l":["customer","meeting"],"g":"B"},{"s":"C_MSFT","t":"C_OAI","l":["customer","investment"],"g":"B"},{"s":"C_AMZN","t":"C_OAI","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_OAI","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_META","l":["customer"],"g":"B"},{"s":"C_CW","t":"C_MSFT","l":["customer"],"g":"B"},{"s":"C_ANT","t":"C_GOOG","l":["customer"],"g":"B"},{"s":"P_JH","t":"C_META","l":["meeting"],"g":"B"},{"s":"C_SPX","t":"P_JH","l":["meeting"],"g":"B"},{"s":"P_JH","t":"U_OSU","l":["academia"],"g":"A"},{"s":"P_LH","t":"U_OSU","l":["academia"],"g":"A"},{"s":"P_JH","t":"U_STAN","l":["academia"],"g":"A"},{"s":"F_HF","t":"U_OSU","l":["philanthropy"],"g":"A"},{"s":"F_HF","t":"U_STAN","l":["philanthropy"],"g":"B"},{"s":"C_CW","t":"F_HF","l":["philanthropy"],"g":"A"},{"s":"G_DOC","t":"P_HL","l":["policy"],"g":"A"},{"s":"G_STATE","t":"P_MR","l":["policy"],"g":"B"},{"s":"G_WH","t":"P_MR","l":["policy"],"g":"B"},{"s":"P_MR","t":"P_TR","l":["policy","meeting"],"g":"B"},{"s":"P_HL","t":"P_MR","l":["policy"],"g":"B"},{"s":"C_NV","t":"P_CK","l":["people"],"g":"A"},{"s":"C_NV","t":"P_DSQ","l":["people"],"g":"A"},{"s":"G_TRE","t":"P_SB","l":["policy"],"g":"B"},{"s":"G_TRE","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_STATE","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_BIS","t":"G_DOC","l":["policy"],"g":"A"},{"s":"G_BIS","t":"P_JK","l":["policy"],"g":"A"},{"s":"G_USTR","t":"P_JG","l":["policy"],"g":"B"},{"s":"G_USTR","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"P_MK","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"G_WH","l":["policy"],"g":"A"},{"s":"G_OSTP","t":"G_PCAST","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_MK","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_DS","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"P_JH","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"C_AMD","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"C_ORCL","l":["policy"],"g":"A"},{"s":"G_PCAST","t":"C_META","l":["policy"],"g":"A"},{"s":"C_NV","t":"G_BIS","l":["policy"],"g":"A"},{"s":"P_HLF","t":"P_SB","l":["policy","meeting"],"g":"B"},{"s":"P_JG","t":"P_WWT","l":["policy"],"g":"B"},{"s":"C_ANT","t":"P_TC","l":["people"],"g":"B"},{"s":"C_OAI","t":"P_CL","l":["people"],"g":"B"},{"s":"C_GDM","t":"P_KK","l":["people"],"g":"B"},{"s":"C_GDM","t":"C_GOOG","l":["people"],"g":"B"},{"s":"C_ARM","t":"C_SBG","l":["investment"],"g":"B"},{"s":"C_OAI","t":"C_SBG","l":["investment","meeting"],"g":"B"},{"s":"C_SBG","t":"PJ_STAR","l":["investment","people"],"g":"A"},{"s":"C_OAI","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_ORCL","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_MGX","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_NV","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_MSFT","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"C_ARM","t":"PJ_STAR","l":["investment"],"g":"A"},{"s":"P_JH","t":"C_SBG","l":["meeting"],"g":"B"},{"s":"C_TSMC","t":"P_JH","l":["meeting","people"],"g":"B"},{"s":"C_TSMC","t":"C_SK","l":["meeting"],"g":"B"},{"s":"C_META","t":"C_AVGO","l":["people"],"g":"A"},{"s":"C_AVGO","t":"C_OAI","l":["supply"],"g":"A"},{"s":"C_HF","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_NV","t":"C_SBE","l":["investment"],"g":"A"},{"s":"C_OAI","t":"C_SBE","l":["customer"],"g":"A"},{"s":"C_NV","t":"G_SAMR","l":["policy"],"g":"A"},{"s":"G_CNSC","t":"G_SAMR","l":["policy"],"g":"B"},{"s":"C_NV","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_ALI","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_BYTE","t":"G_CAC","l":["policy"],"g":"B"},{"s":"C_NV","t":"P_TR","l":["policy"],"g":"B"},{"s":"C_BYTE","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_ALI","t":"C_NV","l":["customer"],"g":"B"},{"s":"C_NV","t":"C_TENC","l":["customer"],"g":"B"},{"s":"P_JH","t":"C_INTC","l":["people"],"g":"B"},{"s":"C_LAMBDA","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_NSCALE","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_CRUSOE","t":"C_NV","l":["investment"],"g":"B"},{"s":"C_FN","t":"C_NV","l":["supply"],"g":"A"},{"s":"C_CW","t":"P_GH","l":["people"],"g":"A"},{"s":"O_BROOK","t":"P_GH","l":["people"],"g":"A"},{"s":"O_BROOK","t":"P_SNJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SNJ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_SCN","l":["people"],"g":"A"},{"s":"C_NV","t":"P_JOD","l":["people"],"g":"A"},{"s":"C_MU","t":"P_TML","l":["people"],"g":"A"},{"s":"C_TSMC","t":"P_TML","l":["people"],"g":"A"},{"s":"C_MU","t":"P_RS","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_RS","l":["people"],"g":"A"},{"s":"C_BLK","t":"C_NV","l":["investment"],"g":"A"},{"s":"C_INTC","t":"P_BN","l":["people"],"g":"A"},{"s":"C_BLK","t":"P_BN","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_JGZ","l":["people"],"g":"A"},{"s":"C_SEQ","t":"P_JGZ","l":["people"],"g":"A"},{"s":"C_NV","t":"P_MST","l":["people"],"g":"A"},{"s":"C_SEQ","t":"P_MST","l":["people"],"g":"A"},{"s":"C_INTC","t":"P_MST","l":["people"],"g":"A"},{"s":"C_NV","t":"P_ABS","l":["people"],"g":"A"},{"s":"C_SNPS","t":"P_ABS","l":["people"],"g":"A"},{"s":"C_SNPS","t":"P_HJ","l":["people"],"g":"A"},{"s":"P_JF","t":"C_NV","l":["people"],"g":"B","aug":1},{"s":"P_IB","t":"C_NV","l":["people"],"g":"B","aug":1},{"s":"P_JF","t":"C_SK","l":["meeting"],"g":"B","aug":1},{"s":"P_JF","t":"C_SKH","l":["meeting"],"g":"B","aug":1},{"s":"P_JF","t":"P_KJS","l":["meeting"],"g":"B","aug":1},{"s":"P_KJS","t":"C_SKH","l":["people"],"g":"B","aug":1},{"s":"P_JF","t":"P_JYH","l":["meeting"],"g":"B","aug":1},{"s":"P_JH","t":"P_LJM","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_SK","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_NAV","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_SEC","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"P_LJM","t":"C_SK","l":["meeting"],"g":"B"},{"s":"P_LJM","t":"C_NAV","l":["meeting"],"g":"B"},{"s":"P_LJM","t":"C_SEC","l":["meeting"],"g":"B"},{"s":"P_LJM","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"C_SK","t":"C_NAV","l":["meeting"],"g":"B"},{"s":"C_SK","t":"C_SEC","l":["meeting"],"g":"B"},{"s":"C_SK","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"C_NAV","t":"C_SEC","l":["meeting"],"g":"B"},{"s":"C_NAV","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"C_SEC","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_LG","l":["meeting"],"g":"B"},{"s":"C_LG","t":"C_SK","l":["meeting"],"g":"B"},{"s":"C_LG","t":"C_NAV","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_OAI","l":["meeting"],"g":"B"},{"s":"C_OAI","t":"C_SEC","l":["meeting"],"g":"B"},{"s":"C_OAI","t":"C_HMG","l":["meeting"],"g":"B"},{"s":"C_OAI","t":"C_NAV","l":["meeting"],"g":"B"},{"s":"C_OAI","t":"P_MH","l":["meeting"],"g":"B"},{"s":"C_SEC","t":"P_MH","l":["meeting"],"g":"B"},{"s":"C_HMG","t":"P_MH","l":["meeting"],"g":"B"},{"s":"C_NAV","t":"P_MH","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_ORCL","l":["meeting"],"g":"B"},{"s":"C_SPX","t":"C_ORCL","l":["meeting"],"g":"B"},{"s":"C_ORCL","t":"P_TR","l":["meeting"],"g":"B"},{"s":"C_ORCL","t":"C_SBG","l":["meeting"],"g":"B"},{"s":"C_OAI","t":"P_TR","l":["meeting"],"g":"B"},{"s":"P_TR","t":"C_SBG","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_ANT","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_MSFT","l":["meeting"],"g":"B"},{"s":"P_SB","t":"P_JG","l":["meeting"],"g":"B"},{"s":"P_JG","t":"P_HLF","l":["meeting"],"g":"B"},{"s":"P_SB","t":"P_HL","l":["meeting"],"g":"B"},{"s":"P_HL","t":"P_JG","l":["meeting"],"g":"B"},{"s":"P_HL","t":"P_HLF","l":["meeting"],"g":"B"},{"s":"P_TR","t":"C_SPX","l":["meeting"],"g":"B"},{"s":"P_JH","t":"P_MR","l":["meeting"],"g":"B"},{"s":"C_SPX","t":"P_MR","l":["meeting"],"g":"B"},{"s":"P_JH","t":"C_SKH","l":["meeting"],"g":"B"},{"s":"P_LH","t":"P_MH","l":["meeting"],"g":"B"},{"s":"P_LH","t":"C_SK","l":["meeting"],"g":"B"},{"s":"P_LH","t":"C_SKH","l":["meeting"],"g":"B"},{"s":"P_MH","t":"C_SK","l":["meeting"],"g":"B"},{"s":"P_MH","t":"C_SKH","l":["meeting"],"g":"B"}]};
+</script>
+<script>
+function boot(DATA, MODE, signal, AUG, FOCUS) {
+const on=(el,ev,fn,opt)=>el.addEventListener(ev,fn,Object.assign({},opt||{},{signal}));
+const JH = 'P_JH', NV = 'C_NV';
+const KEY = new Set([JH, NV, 'P_HLF','P_WWT','P_LJM','P_AH','U_SNU','C_TSMC','P_TR','C_CW','C_OAI','P_LH','G_SAMR','G_CNSC','P_HL','C_SEC','C_SKH','P_CTW','P_LJY','P_EM','P_MC']);
+const TYPE_KO = {person:'Person',company:'Company',government:'Government',event:'Event',foundation:'Foundation/trust',institution:'Institution',project:'Project'};
+const LAYER_KO = {supply:'Supply',customer:'Customer',investment:'Investment',policy:'Policy',people:'People',meeting:'Meeting',academia:'Academia',philanthropy:'Philanthropy'};
+const LAYER_COL = {supply:'#2a7f62',customer:'#2457a6',investment:'#7a4fb5',policy:'#b23a48',people:'#8a8f98',meeting:'#d9590f',academia:'#3d8fb3',philanthropy:'#b58a1b'};
+const SVGNS = 'http://www.w3.org/2000/svg';
+
+/* ---------- data ---------- */
+const nodes = DATA.nodes.map((n, i) => ({...n, i, deg:0, x:0, y:0, vx:0, vy:0, removed:false, cut:false, far:0, phase:Math.random()*Math.PI*2}));
+const byId = Object.fromEntries(nodes.map(n => [n.id, n]));
+const edges = DATA.edges.map(e => ({...e, a:byId[e.s], b:byId[e.t], curv:(Math.random()-.5)*0.55}));
+edges.forEach(e => { e.a.deg++; e.b.deg++; });
+const adj = new Map(nodes.map(n => [n.id, []]));
+edges.forEach(e => { adj.get(e.s).push(e); adj.get(e.t).push(e); });
+nodes.forEach(n => { n.r = n.id === NV ? 15 : n.id === JH ? 11 : n.t === 'event' ? 2.6 : 2.8 + Math.sqrt(n.deg) * 1.15; });
+
+/* initial burst from centre */
+nodes.forEach(n => { const a = Math.random()*Math.PI*2, r = 20 + Math.random()*40; n.x = Math.cos(a)*r; n.y = Math.sin(a)*r; });
+byId[NV].x = 0; byId[NV].y = 0; byId[JH].x = 30; byId[JH].y = -20;
+
+/* ---------- graph metrics ---------- */
+const alive = n => !n.removed;
+function bfs(src) {
+  const dist = new Map([[src, 0]]), q = [src];
+  for (let k = 0; k < q.length; k++) {
+    const u = q[k];
+    for (const e of adj.get(u)) {
+      if (e.off) continue;
+      const v = e.s === u ? e.t : e.s;
+      if (byId[v].removed || dist.has(v)) continue;
+      dist.set(v, dist.get(u) + 1); q.push(v);
+    }
+  }
+  return dist;
+}
+function efficiency() {
+  const live = nodes.filter(alive), N = live.length; let s = 0;
+  for (const n of live) for (const [v, d] of bfs(n.id)) if (d > 0) s += 1 / d;
+  return s / (N * (N - 1));
+}
+function components() {
+  const seen = new Set(), comps = [];
+  for (const n of nodes) {
+    if (n.removed || seen.has(n.id)) continue;
+    const c = [...bfs(n.id).keys()]; c.forEach(x => seen.add(x)); comps.push(c);
+  }
+  return comps.sort((a, b) => b.length - a.length);
+}
+const MERGED = !!DATA.merged;
+if (MERGED) byId[JH].removed = true;
+const baseEff = efficiency();
+const baseMain = new Set(components()[0]);
+const baseDist = { [NV]: bfs(NV), [JH]: bfs(JH) };
+
+/* ---------- svg ---------- */
+const svg = document.getElementById('net');
+const gEdge = mk('g'), gPart = mk('g'), gFx = mk('g'), gNode = mk('g'), gLab = mk('g');
+[gEdge, gPart, gFx, gNode, gLab].forEach(g => svg.appendChild(g));
+function mk(tag, attrs = {}, parent) { const el = document.createElementNS(SVGNS, tag); for (const k in attrs) el.setAttribute(k, attrs[k]); if (parent) parent.appendChild(el); return el; }
+
+edges.forEach(e => {
+  const jen = e.s === JH || e.t === JH;
+  e.el = mk('path', {class: 'edge' + (e.aug ? ' aug' : '') + (jen ? ' jen' : '') + (e.s === NV || e.t === NV ? ' nv' : '')}, gEdge);
+  e.jen = jen || !!e.fromJ;
+  if (e.fromJ) e.el.classList.add('jen');
+});
+nodes.forEach(n => {
+  const g = mk('g', {class: 'node t-' + n.t + (n.id === JH ? ' jh' : '') + (n.id === NV ? ' nv' : '')}, gNode);
+  mk('circle', {class: 'halo', r: n.r + 6}, g);
+  mk('circle', {class: 'ring', r: n.r}, g);
+  if (n.t !== 'event') mk('circle', {class: 'core', r: Math.max(1.1, n.r * 0.38)}, g);
+  n.g = g;
+  const show = KEY.has(n.id) || n.deg >= 7;
+  n.lab = mk('text', {class: 'lab' + (show ? ' on' : '') + (n.id === JH ? ' jh' : '') + (n.id === NV ? ' nv' : '')}, gLab);
+  n.lab.textContent = n.n;
+  n.labOn = show;
+  if (MERGED && n.id === JH) { g.style.display = 'none'; n.lab.style.display = 'none'; }
+  if (MERGED && DATA.merged.viaJ.includes(n.id)) { g.classList.add('viaj'); n.lab.classList.add('on'); n.labOn = true; }
+  on(g, 'mouseenter', () => hover(n));
+  on(g, 'mouseleave', () => hover(null));
+  on(g, 'click', ev => { ev.stopPropagation(); if (dragMoved) return; toggle([n.id]); });
+});
+
+/* particles */
+const parts = Array.from({length: 46}, () => ({el: mk('circle', {class: 'pt', r: 1.4}, gPart), e: null, t: Math.random(), sp: 0.004 + Math.random() * 0.006}));
+function pickEdge(p) { const live = edges.filter(e => !e.a.removed && !e.b.removed && !e.a.cut && !e.b.cut); p.e = live[(Math.random() * live.length) | 0]; p.t = 0; p.dir = Math.random() < .5; p.el.setAttribute('class', 'pt' + (p.e && p.e.jen ? ' jen' : '')); }
+parts.forEach(pickEdge);
+
+/* ---------- simulation ---------- */
+let alpha = 1, t0 = performance.now(), mainR = 300;
+const view = {x: -400, y: -300, w: 800, h: 600};
+let followId = null, Z = 1, PX = 0, PY = 0, lastTgt = null, lastUser = 0, dragMoved = false;
+function tick(now) {
+  if (signal.aborted) return;
+  const t = now - t0;
+  alpha += ((0.025) - alpha) * 0.012;
+  const live = nodes.filter(alive);
+  // repulsion
+  for (let i = 0; i < live.length; i++) {
+    const a = live[i];
+    for (let j = i + 1; j < live.length; j++) {
+      const b = live[j];
+      let dx = b.x - a.x, dy = b.y - a.y, d2 = dx * dx + dy * dy + 0.01;
+      if (d2 > 160000) continue;
+      const f = (a.cut || b.cut ? 260 : 620) * (1 + (a.r + b.r) / 14) / d2 * alpha;
+      const d = Math.sqrt(d2); dx /= d; dy /= d;
+      a.vx -= dx * f; a.vy -= dy * f; b.vx += dx * f; b.vy += dy * f;
+    }
+  }
+  // springs
+  for (const e of edges) {
+    const a = e.a, b = e.b;
+    if (a.removed || b.removed || e.off) continue;
+    const hub = (a.id === NV || b.id === NV) ? 1.0 : 1.0;
+    const L = 46 + 3.5 * Math.sqrt(Math.min(a.deg, b.deg) + Math.max(a.deg, b.deg) * 0.12) * hub;
+    let dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx * dx + dy * dy) || 1;
+    const k = 0.035 * alpha * (d - L) / d;
+    const wa = b.deg / (a.deg + b.deg), wb = 1 - wa;
+    a.vx += dx * k * wa; a.vy += dy * k * wa; b.vx -= dx * k * wb; b.vy -= dy * k * wb;
+  }
+  koreaForce();
+  // gravity, cut-off orbit, wander
+  for (const n of live) {
+    const d = Math.hypot(n.x, n.y) || 1;
+    if (n.cut) {
+      const target = mainR * 1.22, k = 0.02 * (target - d) / d;
+      n.vx += n.x * k; n.vy += n.y * k;
+    } else {
+      n.vx -= n.x * 0.006 * alpha; n.vy -= n.y * 0.006 * alpha;
+    }
+    if (n.id === NV && !n.cut) { n.vx -= n.x * 0.02; n.vy -= n.y * 0.02; }
+    n.vx += Math.sin(t * 0.00045 + n.phase) * 0.018;
+    n.vy += Math.cos(t * 0.00038 + n.phase * 1.3) * 0.018;
+    n.vx *= 0.82; n.vy *= 0.82;
+    n.x += n.vx; n.y += n.vy;
+  }
+  // radius of the main body
+  const main = live.filter(n => !n.cut);
+  if (main.length) {
+    const ds = main.map(n => Math.hypot(n.x, n.y)).sort((a, b) => a - b);
+    mainR += (ds[Math.floor(ds.length * 0.92)] - mainR) * 0.05;
+  }
+  render(now);
+  requestAnimationFrame(tick);
+}
+
+function ctrl(e) {
+  const a = e.a, b = e.b, mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2, dx = b.x - a.x, dy = b.y - a.y;
+  return [mx - dy * e.curv, my + dx * e.curv];
+}
+function render() {
+  // fit view
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+  for (const n of nodes) { if (n.removed && !n.fading) continue; x0 = Math.min(x0, n.x); y0 = Math.min(y0, n.y); x1 = Math.max(x1, n.x); y1 = Math.max(y1, n.y); }
+  const W = svg.clientWidth || 1, H = svg.clientHeight || 1, pad = 40;
+  const wide = window.innerWidth > 860;
+  const panel = wide ? 360 : 0, topPad = wide ? 150 : 90, botPad = wide ? 40 : Math.min(H * 0.42, 330);
+  const aw = W - panel, ah = H - topPad - botPad;
+  const s0 = Math.max((x1 - x0 + pad * 2) / aw, (y1 - y0 + pad * 2) / ah);
+  const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+  const tgt = {x: cx - aw / 2 * s0, y: cy - (ah / 2 + topPad) * s0, w: W * s0, h: H * s0};
+  lastTgt = tgt;
+  let fin = finalView(tgt);
+  if (followId && byId[followId] && !byId[followId].removed) {
+    const f = byId[followId], vw = tgt.w / Z, vh = tgt.h / Z;
+    fin = {w: vw, h: vh, x: f.x - (aw / 2) / W * vw, y: f.y - (topPad + ah / 2) / H * vh};
+    PX = fin.x - (tgt.x + tgt.w / 2) + tgt.w / (2 * Z); PY = fin.y - (tgt.y + tgt.h / 2) + tgt.h / (2 * Z);
+  }
+  const ease = performance.now() - lastUser < 400 ? 0.5 : 0.06;
+  for (const k in view) view[k] += (fin[k] - view[k]) * ease;
+  svg.setAttribute('viewBox', `${view.x} ${view.y} ${view.w} ${view.h}`);
+  const s = view.h / H;
+  svg.style.setProperty('--s', s);
+
+  for (const e of edges) {
+    const [qx, qy] = ctrl(e);
+    e.el.setAttribute('d', `M${e.a.x.toFixed(1)},${e.a.y.toFixed(1)}Q${qx.toFixed(1)},${qy.toFixed(1)} ${e.b.x.toFixed(1)},${e.b.y.toFixed(1)}`);
+  }
+  for (const n of nodes) {
+    n.g.setAttribute('transform', `translate(${n.x.toFixed(1)},${n.y.toFixed(1)})`);
+    n.lab.setAttribute('x', (n.x + n.r + 4).toFixed(1));
+    n.lab.setAttribute('y', (n.y + 3.5).toFixed(1));
+  }
+  renderHulls();
+  if (typeof BEDGE !== 'undefined') { const [qx, qy] = ctrl(BEDGE); const mx = .25 * BEDGE.a.x + .5 * qx + .25 * BEDGE.b.x, my = .25 * BEDGE.a.y + .5 * qy + .25 * BEDGE.b.y; bLab.setAttribute('x', mx.toFixed(1)); bLab.setAttribute('y', (my - 6 * s).toFixed(1)); }
+  for (const p of parts) {
+    if (!p.e || p.e.a.removed || p.e.b.removed || p.e.a.cut || p.e.b.cut) { pickEdge(p); if (!p.e) continue; }
+    p.t += p.sp; if (p.t > 1) pickEdge(p);
+    const [qx, qy] = ctrl(p.e), u = p.dir ? p.t : 1 - p.t, v = 1 - u;
+    const x = v * v * p.e.a.x + 2 * v * u * qx + u * u * p.e.b.x, y = v * v * p.e.a.y + 2 * v * u * qy + u * u * p.e.b.y;
+    p.el.setAttribute('cx', x.toFixed(1)); p.el.setAttribute('cy', y.toFixed(1));
+    p.el.style.opacity = Math.sin(p.t * Math.PI).toFixed(2);
+  }
+}
+
+/* ---------- interaction ---------- */
+const tip = document.getElementById('tip');
+function hover(n) {
+  svg.classList.toggle('hovering', !!n);
+  nodes.forEach(m => { m.g.classList.remove('nb', 'me'); m.lab.classList.remove('hv'); });
+  edges.forEach(e => e.el.classList.remove('hl'));
+  if (!n) { tip.style.opacity = 0; return; }
+  n.g.classList.add('me'); n.lab.classList.add('hv');
+  const ls = new Set();
+  for (const e of adj.get(n.id)) {
+    const o = e.s === n.id ? e.b : e.a;
+    if (o.removed) continue;
+    o.g.classList.add('nb'); o.lab.classList.add('hv'); e.el.classList.add('hl'); e.l.forEach(l => ls.add(LAYER_KO[l] || l));
+  }
+  const live = adj.get(n.id).filter(e => !(e.s === n.id ? e.b : e.a).removed).length;
+  tip.innerHTML = `<b>${n.n}</b><span>${TYPE_KO[n.t] || n.t}${n.c ? ' · ' + n.c : ''}${n.d ? ' · ' + n.d : ''}</span>${n.removed ? '<em>Removed · click to restore</em>' : n.cut ? '<em>Cut off from the network</em>' : '<em>Click to remove this node</em>'}`;
+  const r = n.g.getBoundingClientRect();
+  tip.style.left = Math.min(window.innerWidth - 250, r.right + 10) + 'px';
+  tip.style.top = Math.max(8, r.top - 8) + 'px';
+  tip.style.opacity = 1;
+}
+
+/* ---------- 확대·축소·이동 ---------- */
+function finalView(t) {
+  const zx = t.x + t.w / 2, zy = t.y + t.h / 2;
+  return {w: t.w / Z, h: t.h / Z, x: zx - t.w / (2 * Z) + PX, y: zy - t.h / (2 * Z) + PY};
+}
+function zoomAt(f, sx, sy) {
+  if (!lastTgt) return;
+  const W = svg.clientWidth, H = svg.clientHeight;
+  const nz = Math.min(8, Math.max(0.5, Z * f));
+  const wx = view.x + sx / W * view.w, wy = view.y + sy / H * view.h;
+  const t = lastTgt, nw = t.w / nz, nh = t.h / nz;
+  Z = nz;
+  PX = wx - sx / W * nw - (t.x + t.w / 2) + t.w / (2 * Z);
+  PY = wy - sy / H * nh - (t.y + t.h / 2) + t.h / (2 * Z);
+  lastUser = performance.now();
+  syncZoomUI();
+}
+function syncZoomUI() {
+  document.body.classList.toggle('zoomed', Z >= 1.8);
+  const el = document.getElementById('zoom-val'); if (el) el.textContent = Math.round(Z * 100) + '%';
+}
+on(svg, 'wheel', ev => {
+  ev.preventDefault(); followId = null;
+  const r = svg.getBoundingClientRect();
+  zoomAt(Math.exp(-ev.deltaY * (ev.ctrlKey ? 0.01 : 0.0012)), ev.clientX - r.left, ev.clientY - r.top);
+}, {passive: false});
+const ptrs = new Map(); let pinch0 = null, dragStart = null;
+on(svg, 'pointerdown', ev => {
+  ptrs.set(ev.pointerId, {x: ev.clientX, y: ev.clientY});
+  dragMoved = false; dragStart = {x: ev.clientX, y: ev.clientY};
+  if (ptrs.size === 2) { const [a, b] = [...ptrs.values()]; pinch0 = {d: Math.hypot(a.x - b.x, a.y - b.y), z: Z}; }
+  svg.classList.add('grabbing');
+});
+on(window, 'pointermove', ev => {
+  if (!ptrs.has(ev.pointerId)) return;
+  const prev = ptrs.get(ev.pointerId), cur = {x: ev.clientX, y: ev.clientY};
+  ptrs.set(ev.pointerId, cur);
+  if (Math.hypot(cur.x - dragStart.x, cur.y - dragStart.y) > 4) dragMoved = true;
+  const r = svg.getBoundingClientRect();
+  if (ptrs.size === 2 && pinch0) {
+    const [a, b] = [...ptrs.values()], d = Math.hypot(a.x - b.x, a.y - b.y);
+    zoomAt((pinch0.z * d / pinch0.d) / Z, (a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top);
+  } else if (ptrs.size === 1 && dragMoved) {
+    followId = null;
+    const k = view.w / svg.clientWidth;
+    PX -= (cur.x - prev.x) * k; PY -= (cur.y - prev.y) * k;
+    lastUser = performance.now();
+  }
+});
+const endPtr = ev => { ptrs.delete(ev.pointerId); if (ptrs.size < 2) pinch0 = null; if (!ptrs.size) { svg.classList.remove('grabbing'); setTimeout(() => dragMoved = false, 0); } };
+on(window, 'pointerup', endPtr); on(window, 'pointercancel', endPtr);
+const zb = (id, fn) => on(document.getElementById(id), 'click', fn);
+const centerPt = () => { const W = svg.clientWidth, H = svg.clientHeight, panel = window.innerWidth > 860 ? 360 : 0; return [(W - panel) / 2, H / 2]; };
+zb('zoom-in', () => zoomAt(1.4, ...centerPt()));
+zb('zoom-out', () => zoomAt(1 / 1.4, ...centerPt()));
+zb('zoom-fit', () => { followId = null; Z = 1; PX = 0; PY = 0; lastUser = performance.now() - 300; syncZoomUI(); });
+
+
+function pulse(n) {
+  const c = mk('circle', {class: 'pulse', cx: n.x, cy: n.y, r: n.r}, gFx);
+  c.animate([{r: n.r, opacity: .9}, {r: n.r + 120, opacity: 0}], {duration: 1400, easing: 'cubic-bezier(.2,.7,.3,1)'}).onfinish = () => c.remove();
+  const c2 = mk('circle', {class: 'pulse', cx: n.x, cy: n.y, r: n.r}, gFx);
+  c2.animate([{r: n.r, opacity: .7}, {r: n.r + 60, opacity: 0}], {duration: 1100, delay: 180, easing: 'ease-out'}).onfinish = () => c2.remove();
+}
+
+function toggle(ids, forceState) {
+  if (MERGED) ids = ids.filter(id => id !== JH);
+  if (!ids.length) return;
+  const target = ids.map(id => byId[id]);
+  const removing = forceState !== undefined ? forceState : !target[0].removed;
+  target.forEach(n => {
+    if (n.removed === removing) return;
+    if (removing) {
+      pulse(n);
+      adj.get(n.id).forEach(e => { e.el.classList.add('dying'); });
+      n.g.classList.add('dying'); n.lab.classList.add('dying');
+      setTimeout(() => { n.removed = true; n.g.classList.add('gone'); n.lab.classList.add('gone'); adj.get(n.id).forEach(e => { e.el.classList.remove('dying'); e.el.classList.add('gone'); }); update(); }, 700);
+    } else {
+      n.removed = false;
+      n.g.classList.remove('gone', 'dying'); n.lab.classList.remove('gone', 'dying');
+      adj.get(n.id).forEach(e => { if (!e.a.removed && !e.b.removed) e.el.classList.remove('gone', 'dying'); });
+      n.x = (Math.random() - .5) * 40; n.y = (Math.random() - .5) * 40;
+    }
+  });
+  if (!removing) update();
+  alpha = 1;
+}
+
+function update() {
+  const comps = components();
+  const main = new Set(comps[0] || []);
+  const removed = nodes.filter(n => n.removed && !(MERGED && n.id === JH));
+  // reference hub for "farther" check
+  let ref = null;
+  if (!byId[NV].removed) ref = NV; else if (!byId[JH].removed) ref = JH;
+  const dNow = ref ? bfs(ref) : null, dBase = ref ? baseDist[ref] : null;
+  const cut = [], far = [];
+  const crowd = nodes.filter(n => !n.removed && baseMain.has(n.id) && !main.has(n.id)).length > 8;
+  nodes.forEach(n => {
+    const wasCut = n.cut;
+    n.cut = !n.removed && baseMain.has(n.id) && !main.has(n.id);
+    if (n.cut && !wasCut) { n.vx += n.x * 0.05; n.vy += n.y * 0.05; }
+    n.g.classList.toggle('cut', n.cut); n.lab.classList.toggle('cut', n.cut);
+    n.lab.classList.toggle('on', n.labOn || n.cut);
+    n.lab.classList.toggle('many', n.cut && crowd);
+    n.far = 0;
+    if (!n.removed && !n.cut && ref && dBase.has(n.id) && dNow.has(n.id) && dNow.get(n.id) > dBase.get(n.id)) {
+      n.far = dNow.get(n.id) - dBase.get(n.id); far.push([n, dBase.get(n.id), dNow.get(n.id)]);
+    }
+    n.g.classList.toggle('far', n.far > 0);
+    if (n.cut) cut.push(n);
+  });
+  edges.forEach(e => e.el.classList.toggle('cutedge', e.a.cut || e.b.cut));
+  const effDrop = removed.length ? (1 - efficiency() / baseEff) * 100 : 0;
+  const lostEdges = edges.filter(e => e.a.removed || e.b.removed).length;
+  far.sort((a, b) => (b[2] - b[1]) - (a[2] - a[1]) || b[0].deg - a[0].deg);
+  showPanel(removed, effDrop, lostEdges, cut, far, ref);
+  if (typeof updateChina === 'function') updateChina();
+}
+
+/* ---------- panel ---------- */
+const P = id => document.getElementById(id);
+const PRESET = MERGED ? {
+  [NV]: `A single hub merging Jensen and NVIDIA. Removing it deletes ${adj.get(NV).length} links.`,
+} : MODE === 'org' ? {
+  [JH]: `By organization, NVIDIA also reaches 21 of the ${adj.get(JH).length - 1} nodes Jensen reaches. Jensen’s own share is government, Chinese leadership, academia and personal ties.`,
+  [NV]: `NVIDIA the company is the No. 1 hub. Removing it deletes ${adj.get(NV).length} links and cuts off suppliers and neoclouds.`,
+} : {
+  [JH]: 'Jensen is the No. 2 hub after NVIDIA (eigenvector 0.271, betweenness 0.329). Removing him deletes 33 links and lengthens paths to Chinese leadership.',
+  [NV]: 'NVIDIA the company is the No. 1 hub (eigenvector 0.625). Removing it deletes 67 links and cuts off suppliers and neoclouds entirely.',
+};
+function showPanel(removed, effDrop, lostEdges, cut, far, ref) {
+  P('st-eff').textContent = removed.length ? '−' + effDrop.toFixed(1) + '%' : '—';
+  P('st-edge').textContent = removed.length ? lostEdges : '—';
+  P('st-cut').textContent = removed.length ? cut.length : '—';
+  P('st-far').textContent = removed.length && ref ? far.length : '—';
+  P('st-eff').className = 'v' + (effDrop > 30 ? ' big' : '');
+  const names = removed.map(n => n.n).join(' · ');
+  P('rm-name').textContent = removed.length ? names + ' removed' : 'Baseline · just before resignation (Nov 10, 2026)';
+  const one = removed.length === 1 ? removed[0].id : null;
+  P('rm-desc').textContent = one && PRESET[one] ? PRESET[one] : removed.length ? 'Links to the removed node disappear and the remaining network reorganizes.' : (MERGED ? `Jensen = NVIDIA view: the two nodes are merged. Of the merged hub’s ${adj.get(NV).length} ties, ${DATA.merged.viaJ.length} (orange) were reached directly only through Jensen. ` : '') + (MODE==='org' ? 'Organization view: company heads merged into companies; event attendees linked directly. ' : '') + `${nodes.length - (MERGED ? 1 : 0)} nodes · ${edges.length} links. Click a node to remove it.`;
+  P('cut-list').innerHTML = cut.length ? cut.map(n => `<li><b>${n.n}</b><span>${TYPE_KO[n.t]}</span></li>`).join('') : `<li class="none">${removed.length ? 'None' : '—'}</li>`;
+  P('far-title').textContent = ref ? `Nodes pushed farther from ${byId[ref].n}` : 'Nodes pushed farther';
+  P('far-list').innerHTML = far.length ? far.slice(0, 14).map(([n, a, b]) => `<li><b>${n.n}</b><span>${a}→${b} steps</span></li>`).join('') + (far.length > 14 ? `<li class="none">and ${far.length - 14} more</li>` : '') : `<li class="none">${removed.length && ref ? 'None' : '—'}</li>`;
+  document.querySelectorAll('.sc').forEach(b => b.classList.toggle('active', b.dataset.k === scenarioKey()));
+}
+function scenarioKey() {
+  const r = nodes.filter(n => n.removed).map(n => n.id).sort().join(',');
+  return r === JH ? 'jh' : r === NV ? 'nv' : r === [NV, JH].sort().join(',') ? 'both' : r === '' ? 'base' : '';
+}
+document.querySelectorAll('.sc').forEach(b => on(b, 'click', () => {
+  const k = b.dataset.k;
+  const want = k === 'jh' ? [JH] : k === 'nv' ? [NV] : k === 'both' ? [JH, NV] : [];
+  const restore = nodes.filter(n => n.removed && !want.includes(n.id) && !(MERGED && n.id === JH)).map(n => n.id);
+  if (restore.length) toggle(restore, false);
+  const add = want.filter(id => !byId[id].removed);
+  if (add.length) setTimeout(() => toggle(add, true), restore.length ? 500 : 0);
+  if (!restore.length && !add.length) update();
+}));
+on(P('layer-toggle'), 'change', e => {
+  document.body.classList.toggle('layers', e.target.checked);
+  edges.forEach(ed => ed.el.style.stroke = e.target.checked ? LAYER_COL[ed.l[0]] : '');
+});
+P('legend-layers').innerHTML = Object.entries(LAYER_KO).map(([k, v]) => `<span><i style="background:${LAYER_COL[k]}"></i>${v}</span>`).join('');
+
+
+/* ---------- 중국 경로 모드 ---------- */
+const LEAD = ['P_HLF','P_WWT','G_CNSC','G_MOFCOM'];
+const BEDGE = edges.find(e => (e.s === 'G_SAMR' && e.t === 'G_CNSC') || (e.s === 'G_CNSC' && e.t === 'G_SAMR'));
+BEDGE.el.classList.add('bedge');
+nodes.forEach(n => { n.cn = n.c === 'CN'; n.g.classList.toggle('cn', n.cn); n.lab.classList.toggle('cnl', n.cn); });
+let chinaOn = false;
+const bLab = mk('text', {class: 'blab'}, gLab); bLab.textContent = 'Single grade-B link';
+
+function bfsCount(src) {
+  const dist = new Map([[src, 0]]), cnt = new Map([[src, 1]]), par = new Map([[src, []]]), q = [src];
+  for (let k = 0; k < q.length; k++) {
+    const u = q[k];
+    for (const e of adj.get(u)) {
+      if (e.off) continue;
+      const v = e.s === u ? e.t : e.s;
+      if (byId[v].removed) continue;
+      if (!dist.has(v)) { dist.set(v, dist.get(u) + 1); cnt.set(v, 0); par.set(v, []); q.push(v); }
+      if (dist.get(v) === dist.get(u) + 1) { cnt.set(v, cnt.get(v) + cnt.get(u)); par.get(v).push([u, e]); }
+    }
+  }
+  return {dist, cnt, par};
+}
+// 시트와 같은 정의: 영역 밖 노드(행사·두 허브 제외) → 지도부 4곳 최단경로 중 X를 지나는 비율의 평균
+function viaShare(X) {
+  if (byId[X].removed) return null;
+  const bx = bfsCount(X), dom = new Set(LEAD), rat = [];
+  for (const n of nodes) {
+    if (n.removed || dom.has(n.id) || n.t === 'event' || n.id === JH || n.id === NV) continue;
+    const bs = bfsCount(n.id);
+    for (const t of LEAD) {
+      if (byId[t].removed || !bs.dist.has(t)) continue;
+      const thr = (bs.dist.has(X) && bx.dist.has(t) && bs.dist.get(X) + bx.dist.get(t) === bs.dist.get(t)) ? bs.cnt.get(X) * bx.cnt.get(t) : 0;
+      rat.push(thr / bs.cnt.get(t));
+    }
+  }
+  return rat.length ? 100 * rat.reduce((a, b) => a + b, 0) / rat.length : null;
+}
+function routesFrom(src, tgt) {
+  const b = bfsCount(src); if (!b.dist.has(tgt)) return {hops: null, paths: []};
+  const paths = [];
+  (function walk(v, acc) {
+    if (paths.length > 40) return;
+    if (v === src) { paths.push(acc.slice().reverse()); return; }
+    for (const [u, e] of b.par.get(v)) { acc.push([v, e]); walk(u, acc); acc.pop(); }
+  })(tgt, []);
+  return {hops: b.dist.get(tgt), paths};
+}
+const CAT_KO = {jh: 'Via Jensen', samr: 'Regulatory route', us: 'Negotiation route'};
+function catOf(path) {
+  if (path.some(([, e]) => e.fromJ)) return 'jh';
+  const ids = new Set(path.map(([v]) => v));
+  return ids.has(JH) ? 'jh' : ids.has('G_SAMR') ? 'samr' : 'us';
+}
+const RANK = {jh: 3, samr: 2, us: 1};
+function updateChina() {
+  edges.forEach(e => { e.el.classList.remove('route', 'r-jh', 'r-samr', 'r-us'); });
+  nodes.forEach(n => n.g.classList.remove('onroute'));
+  nodes.forEach(n => n.lab.classList.remove('rl'));
+  if (!chinaOn) return;
+  const src = !byId[NV].removed ? NV : null;
+  const rows = [];
+  if (src) {
+    for (const t of ['P_HLF', 'P_WWT']) {
+      if (byId[t].removed) continue;
+      const r = routesFrom(src, t), cats = new Set();
+      r.paths.forEach(p => {
+        const c = catOf(p); cats.add(c);
+        p.forEach(([v, e]) => {
+          const cur = e.cat && e.el.classList.contains('route') ? e.cat : null;
+          if (!cur || RANK[c] > RANK[cur]) e.cat = c;
+          e.el.classList.add('route');
+          byId[v].g.classList.add('onroute'); byId[v].lab.classList.add('rl');
+        });
+      });
+      rows.push([byId[t].n, r.hops, [...cats].map(c => CAT_KO[c]).join('·')]);
+    }
+    byId[src].g.classList.add('onroute');
+    edges.forEach(e => { if (e.el.classList.contains('route')) e.el.classList.add('r-' + e.cat); });
+  }
+  const vj = viaShare(JH), vn = viaShare(NV);
+  P('cn-via-jh').textContent = vj == null ? (MERGED ? 'Merged' : byId[JH].removed ? 'Removed' : '—') : vj.toFixed(1) + '%';
+  P('cn-via-nv').textContent = vn == null ? (byId[NV].removed ? 'Removed' : '—') : vn.toFixed(1) + '%';
+  P('cn-paths').innerHTML = rows.length ? rows.map(([n, h, c]) => `<li><b>NVIDIA → ${n}</b><span>${h == null ? 'No path' : h + ' steps · ' + c}</span></li>`).join('') : '<li class="none">NVIDIA removed; paths not calculated</li>';
+}
+on(P('china-toggle'), 'click', () => {
+  chinaOn = !chinaOn;
+  document.body.classList.toggle('china', chinaOn);
+  P('china-toggle').classList.toggle('active', chinaOn);
+  P('china-box').hidden = !chinaOn;
+  update();
+});
+on(P('bedge-toggle'), 'change', e => {
+  BEDGE.off = e.target.checked;
+  BEDGE.el.classList.toggle('off', BEDGE.off);
+  document.body.classList.toggle('boff', BEDGE.off);
+  alpha = Math.max(alpha, .4);
+  update();
+});
+
+
+/* ---------- 한국 기업·총수 보기 ---------- */
+const KGROUPS = [
+  ['Samsung', ['C_SEC','C_SEM','P_LJY','P_JYH']],
+  ['SK', ['C_SK','C_SKH','C_SKT','P_CTW','P_KNJ']],
+  ['Hyundai', ['C_HMG','P_CES']],
+  ['NAVER', ['C_NAV','P_LHJ','P_CSY']],
+  ['LG', ['C_LG','P_KKM']],
+  ['Doosan', ['C_DOO','P_PJW']],
+  ['NCSOFT', ['C_NC','P_KTJ']],
+  ['Rebellions', ['C_REB']],
+  ['Gov’t & institutions', ['P_LJM','G_MSIT','U_SNU']]
+].map(([g, ids]) => [g, ids.filter(id => byId[id])]).filter(([g, ids]) => ids.length);
+const KSET = new Set(KGROUPS.flatMap(([, ids]) => ids));
+const KEV = new Set(nodes.filter(n => n.t === 'event' && adj.get(n.id).some(e => (e.s === n.id ? e.t : e.s) === (MERGED ? NV : JH)) && adj.get(n.id).some(e => KSET.has(e.s === n.id ? e.t : e.s))).map(n => n.id));
+let koreaOn = false;
+const gHull = mk('g'); svg.insertBefore(gHull, svg.firstChild);
+const hulls = KGROUPS.map(([g, ids]) => ({g, ids, c: mk('circle', {class: 'hull'}, gHull), t: mk('text', {class: 'hlab'}, gHull)}));
+hulls.forEach(h => h.t.textContent = h.g);
+function koreaForce() {
+  if (!koreaOn) return;
+  const nv = byId[NV], ox = nv.removed ? 0 : nv.x, oy = nv.removed ? 0 : nv.y, RR = Math.max(170, mainR * 0.85);
+  hulls.forEach((h, i) => {
+    const m = h.ids.map(id => byId[id]).filter(n => !n.removed && !n.cut);
+    if (!m.length) return;
+    const cx = m.reduce((a, n) => a + n.x, 0) / m.length, cy = m.reduce((a, n) => a + n.y, 0) / m.length;
+    const ang = -Math.PI / 2 + i * 2 * Math.PI / hulls.length, ax = ox + RR * Math.cos(ang), ay = oy + RR * Math.sin(ang);
+    for (const n of m) { n.vx += (cx - n.x) * 0.025 + (ax - cx) * 0.04; n.vy += (cy - n.y) * 0.025 + (ay - cy) * 0.04; }
+  });
+}
+function renderHulls() {
+  gHull.style.display = koreaOn ? '' : 'none';
+  if (!koreaOn) return;
+  const s = view.h / (svg.clientHeight || 1);
+  for (const h of hulls) {
+    const m = h.ids.map(id => byId[id]).filter(n => !n.removed && !n.cut);
+    if (!m.length) { h.c.setAttribute('r', 0); h.t.textContent = ''; continue; }
+    h.t.textContent = h.g;
+    const cx = m.reduce((a, n) => a + n.x, 0) / m.length, cy = m.reduce((a, n) => a + n.y, 0) / m.length;
+    const r = Math.max(...m.map(n => Math.hypot(n.x - cx, n.y - cy) + n.r)) + 14 * s;
+    h.c.setAttribute('cx', cx.toFixed(1)); h.c.setAttribute('cy', cy.toFixed(1)); h.c.setAttribute('r', r.toFixed(1));
+    h.t.setAttribute('x', cx.toFixed(1)); h.t.setAttribute('y', (cy - r - 6 * s).toFixed(1));
+  }
+}
+// 기준 관계망에서 노드 하나를 지웠을 때 harmonic 도달범위 감소율
+function harmAll(skip) {
+  const out = {};
+  for (const id of KSET) {
+    const dist = new Map([[id, 0]]), q = [id]; let h = 0;
+    for (let k = 0; k < q.length; k++) {
+      const u = q[k];
+      for (const e of adj.get(u)) {
+        const v = e.s === u ? e.t : e.s;
+        if (v === skip || dist.has(v)) continue;
+        dist.set(v, dist.get(u) + 1); h += 1 / dist.get(v); q.push(v);
+      }
+    }
+    out[id] = h;
+  }
+  return out;
+}
+let KTABLE = null;
+function koreaTable() {
+  if (KTABLE) return KTABLE;
+  const h0 = harmAll(null), hj = harmAll(JH), hn = harmAll(NV);
+  const pct = (a, b) => (100 * (1 - a / b)).toFixed(1);
+  KTABLE = KGROUPS.map(([g, ids]) => `<tr class="gh"><td colspan="3">${g}</td></tr>` + ids.map(id => {
+    const n = byId[id], role = n.t === 'person' ? (id === 'P_LJM' ? 'President' : 'Executive') : n.t === 'company' ? 'Company' : 'Institution';
+    const j = +pct(hj[id], h0[id]), v = +pct(hn[id], h0[id]);
+    return `<tr><td>${n.n}<small>${role}</small></td><td class="${j > v ? 'big' : ''}" style="color:#d9590f">−${j.toFixed(1)}%</td><td style="color:#1f4f9a">−${v.toFixed(1)}%</td></tr>`;
+  }).join('')).join('');
+  return KTABLE;
+}
+function applyKorea() {
+  document.body.classList.toggle('korea', koreaOn);
+  nodes.forEach(n => { const on = KSET.has(n.id) || KEV.has(n.id) || n.id === JH || n.id === NV; n.g.classList.toggle('kr', on); n.lab.classList.toggle('krl', KSET.has(n.id) || n.id === JH || n.id === NV); });
+  edges.forEach(e => { const a = e.a.g.classList.contains('kr'), b = e.b.g.classList.contains('kr'); e.el.classList.toggle('kre', a && b); });
+  P('korea-box').hidden = !koreaOn;
+  P('korea-toggle').classList.toggle('active', koreaOn);
+  if (koreaOn) P('korea-table').innerHTML = koreaTable();
+  alpha = Math.max(alpha, .6);
+}
+on(P('korea-toggle'), 'click', () => {
+  koreaOn = !koreaOn;
+  if (koreaOn && chinaOn) P('china-toggle').click();
+  applyKorea();
+});
+on(P('china-toggle'), 'click', () => { if (chinaOn && koreaOn) { koreaOn = false; applyKorea(); } });
+
+
+/* ---------- 엔비디아 임원 ---------- */
+const EXECS = ['Jeff Fisher','Ian Buck','Colette Kress','Debora Shoquist','Mark Stevens','Suzanne Nora Johnson','Stephen C. Neal','John O. Dabiri','A. Brooke Seawell','Harvey C. Jones','Chris Malachowsky','Madison Huang','Spencer Huang'];
+const byName = Object.fromEntries(nodes.map(n => [n.n, n]));
+let focusId = null;
+function brandes() {
+  const live = nodes.filter(n => !n.removed), bc = Object.fromEntries(live.map(n => [n.id, 0]));
+  for (const s0 of live) {
+    const S = [], P = new Map(), sig = new Map([[s0.id, 1]]), d = new Map([[s0.id, 0]]), q = [s0.id];
+    for (let k = 0; k < q.length; k++) {
+      const v = q[k]; S.push(v);
+      for (const e of adj.get(v)) {
+        if (e.off) continue;
+        const w = e.s === v ? e.t : e.s;
+        if (byId[w].removed) continue;
+        if (!d.has(w)) { d.set(w, d.get(v) + 1); q.push(w); sig.set(w, 0); P.set(w, []); }
+        if (d.get(w) === d.get(v) + 1) { sig.set(w, sig.get(w) + sig.get(v)); P.get(w).push(v); }
+      }
+    }
+    const del = new Map();
+    while (S.length) { const w = S.pop(); for (const v of (P.get(w) || [])) del.set(v, (del.get(v) || 0) + sig.get(v) / sig.get(w) * (1 + (del.get(w) || 0))); if (w !== s0.id) bc[w] += del.get(w) || 0; }
+  }
+  const N = live.length; for (const k in bc) bc[k] /= (N - 1) * (N - 2);
+  return bc;
+}
+function focusExec(name) {
+  const n = byName[name];
+  document.querySelectorAll('.ex').forEach(b => b.classList.toggle('active', b.dataset.n === name && !!n));
+  nodes.forEach(m => { m.g.classList.remove('fc', 'fnb'); m.lab.classList.remove('fcl'); });
+  edges.forEach(e => e.el.classList.remove('fce'));
+  if (name === '__none__') { focusId = null; followId = null; return; }
+  if (!n) {
+    focusId = null; document.body.classList.remove('focusing');
+    P('ex-card').innerHTML = `<b>${name}</b><p>Not a node in the base network (v5). Turn on the supplementary layer below to add the ties reported in Part 4 and recalculate.</p>`;
+    return;
+  }
+  focusId = n.id; document.body.classList.add('focusing');
+  n.g.classList.add('fc'); n.lab.classList.add('fcl');
+  const nb = [];
+  for (const e of adj.get(n.id)) { if (e.off) continue; const o = e.s === n.id ? e.b : e.a; if (o.removed) continue; o.g.classList.add('fnb'); o.lab.classList.add('fcl'); e.el.classList.add('fce'); nb.push(o.n + (e.aug ? '*' : '')); }
+  const bc = brandes(), persons = nodes.filter(m => !m.removed && m.t === 'person').sort((a, b) => bc[b.id] - bc[a.id]);
+  const rank = persons.findIndex(m => m.id === n.id) + 1;
+  let drop = '—';
+  if (!n.removed) { const e0 = efficiency(); n.removed = true; const e1 = efficiency(); n.removed = false; drop = '−' + (100 * (1 - e1 / e0)).toFixed(1) + '%'; }
+  P('ex-card').innerHTML = `<b>${n.n}</b><span>${n.d || ''}</span>
+    <div class="exs"><div><i>Links</i>${nb.length}</div><div><i>Betweenness</i>${(bc[n.id] || 0).toFixed(3)}<small>No. ${rank} among people</small></div><div><i>Efficiency if removed</i>${drop}</div></div>
+    <p>${nb.join(' · ')}</p>${nb.some(x => x.endsWith('*')) ? '<p class="nt">* Supplementary-layer tie (Part 4 reporting, grade B)</p>' : ''}
+    <button class="exrm">${n.removed ? 'Restore' : 'Remove this executive'}</button>`;
+  on(P('ex-card').querySelector('.exrm'), 'click', () => { toggle([n.id]); setTimeout(() => focusExec(name), 900); });
+  // 노드로 확대·따라가기
+  Z = Math.max(Z, 2.4); followId = n.id; lastUser = performance.now(); syncZoomUI();
+}
+P('ex-list').innerHTML = EXECS.map(nm => `<button class="ex${byName[nm] ? '' : ' miss'}" data-n="${nm}">${nm}</button>`).join('');
+document.querySelectorAll('.ex').forEach(b => on(b, 'click', () => {
+  if (b.classList.contains('active')) { focusExec('__none__'); P('ex-card').innerHTML = ''; document.body.classList.remove('focusing'); b.classList.remove('active'); return; }
+  focusExec(b.dataset.n);
+}));
+P('aug-toggle').checked = !!AUG;
+if (FOCUS) setTimeout(() => focusExec(FOCUS), 1200);
+if (MERGED) {
+  const M = DATA.merged;
+  P('merge-box').innerHTML = `<div class="mstats"><div><i>Merged hub ties</i>${adj.get(NV).length}</div><div><i>Reached only via Jensen</i><b class="j">${M.viaJ.length}</b><small>2 steps → 1</small></div><div><i>One step closer</i>${M.closer.filter(c => c[1] - c[2] === 1 && c[1] > 2).length}<small>3 steps → 2</small></div></div>
+    <h3>Reached directly only via Jensen</h3><p>${M.viaJ.map(id => byId[id].n).join(' · ')}</p>
+    <h3>One step closer</h3><p>${M.closer.filter(c => c[1] > 2).map(([id, a, b]) => `${byId[id].n}(${a}→${b})`).join(' · ')}</p>`;
+}
+
+update();
+requestAnimationFrame(tick);
+}
+
+let CTL = null, CUR = 'base', AUGON = false, MERGEON = false;
+function mergeJH(D) {
+  const JH = 'P_JH', NV = 'C_NV', key = (a, b) => a < b ? a + '|' + b : b + '|' + a;
+  const nvN = new Set(), jhN = new Set(), E = new Map();
+  for (const e of D.edges) { const o = e.s === JH ? e.t : e.t === JH ? e.s : null; if (o && o !== NV) jhN.add(o); const p = e.s === NV ? e.t : e.t === NV ? e.s : null; if (p && p !== JH) nvN.add(p); }
+  for (const e of D.edges) {
+    let s = e.s, t = e.t, fj = false;
+    if (s === JH) { s = NV; fj = true; } if (t === JH) { t = NV; fj = true; }
+    if (s === t) continue;
+    const k = key(s, t);
+    if (E.has(k)) { const x = E.get(k); if (!fj) x.fromJ = false; x.l = [...new Set([...x.l, ...e.l])]; if (e.g === 'A') x.g = 'A'; }
+    else E.set(k, {...e, s, t, l: [...e.l], fromJ: fj && !nvN.has(s === NV ? t : s)});
+  }
+  const edges = [...E.values()];
+  const dist = (es) => { const A = new Map(); for (const e of es) { (A.get(e.s) || A.set(e.s, []).get(e.s)).push(e.t); (A.get(e.t) || A.set(e.t, []).get(e.t)).push(e.s); } const d = new Map([[NV, 0]]), q = [NV]; for (let i = 0; i < q.length; i++) for (const w of A.get(q[i]) || []) if (!d.has(w)) { d.set(w, d.get(q[i]) + 1); q.push(w); } return d; };
+  const d0 = dist(D.edges), d1 = dist(edges);
+  const viaJ = [...jhN].filter(x => !nvN.has(x));
+  const closer = [...d1.keys()].filter(x => x !== JH && d0.has(x) && d1.get(x) < d0.get(x)).map(x => [x, d0.get(x), d1.get(x)]).sort((a, b) => a[1] - b[1]);
+  return {nodes: D.nodes, edges, merged: {viaJ, closer}};
+}
+function start(mode, aug, focus, merged) {
+  MERGEON = !!merged;
+  if (CTL) CTL.abort();
+  CTL = new AbortController(); CUR = mode; AUGON = !!aug;
+  document.getElementById('net').innerHTML = '';
+  ['china','korea','zoomed','layers','boff','hovering','focusing'].forEach(c => document.body.classList.remove(c));
+  ['layer-toggle','bedge-toggle'].forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+  document.getElementById('china-box').hidden = true;
+  document.getElementById('korea-box').hidden = true;
+  document.getElementById('korea-toggle').classList.remove('active');
+  document.getElementById('china-toggle').classList.remove('active');
+  document.getElementById('zoom-val').textContent = '100%';
+  document.getElementById('ex-card').innerHTML = '';
+  const ob = document.getElementById('org-toggle');
+  ob.classList.toggle('active', mode === 'org');
+  ob.textContent = mode === 'org' ? 'Back to base network (v5)' : 'View by organization (head = company)';
+  document.getElementById('org-note').hidden = mode !== 'org';
+  const cn = document.getElementById('cn-note');
+  if (!cn.dataset.base) cn.dataset.base = cn.textContent;
+  cn.textContent = mode === 'org' ? cn.dataset.base.replace('Base-network reach loss: −34.1% without Jensen, −26.6% without NVIDIA.', 'Organization-view reach loss: −30.1% without Jensen, −25.6% without NVIDIA.') : cn.dataset.base;
+  document.getElementById('aug-note').hidden = !aug;
+  let D = mode === 'org' ? (aug ? DATA_ORG_AUG : DATA_ORG) : (aug ? DATA_AUG : DATA);
+  if (merged) D = mergeJH(D);
+  document.body.classList.toggle('merged', !!merged);
+  const mb = document.getElementById('merge-toggle');
+  mb.classList.toggle('active', !!merged);
+  mb.textContent = merged ? 'Separate Jensen and NVIDIA again' : 'View Jensen = NVIDIA (merge into one)';
+  document.getElementById('merge-box').hidden = !merged;
+  document.querySelector('.sc.nv').textContent = merged ? 'Remove merged hub' : 'Remove NVIDIA';
+  boot(D, mode, CTL.signal, aug, focus);
+}
+document.getElementById('org-toggle')['addEventListener']('click', () => start(CUR === 'org' ? 'base' : 'org', AUGON, null, MERGEON));
+document.getElementById('merge-toggle')['addEventListener']('click', () => start(CUR, AUGON, null, !MERGEON));
+document.getElementById('aug-toggle')['addEventListener']('change', e => {
+  const act = document.querySelector('.ex.active');
+  start(CUR, e.target.checked, act ? act.dataset.n : null, MERGEON);
+});
+document.getElementById('ex-list')['addEventListener']('click', e => {
+  const b = e.target.closest('.ex.miss');
+  if (b && !AUGON) { document.getElementById('aug-toggle').checked = true; start(CUR, true, b.dataset.n, MERGEON); }
+});
+start('base', false);
+
+</script>
+</body>
+</html>
